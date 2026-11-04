@@ -1,0 +1,768 @@
+// SeeWe - AI Recruitment Platform Schema
+// SQLite does not support enums -> use String fields
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String   @id @default(cuid())
+  email           String   @unique
+  password        String?
+  name            String
+  role            String   @default("CANDIDATE") // CANDIDATE | RECRUITER | CLIENT | ADMIN
+  clientId        String?  // for roles CLIENT + RECRUITER: the Client company account this user belongs to
+  phone           String?
+  headline        String?  // e.g. "Senior React Developer"
+  location        String?
+  company         String?  // recruiter's company
+  skills          String?  // comma separated
+  experienceYears Float?   // years of experience
+  currentSalary   Int?     // in LPA
+  expectedSalary  Int?     // in LPA
+  education       String?
+  resumeText      String?  // full resume / profile summary text
+  avatarSeed      String?  // for consistent avatar colors
+  noticePeriodDays Int?    // candidate availability: 0 = immediate, 15/30/60/90 = days; null = not specified
+  profileVisible   Boolean @default(true) // profile visibility toggle — false = hidden from recruiter talent search (false = hidden from talent search)
+  // Privacy shield: PRIVATE candidate field — their current employer. Recruiters whose
+  // company matches this name never see the candidate in talent search.
+  currentEmployer  String?  // never exposed through recruiter-facing APIs
+  // Portfolio sync (one-click imports + public profile links)
+  githubUrl        String?  // e.g. https://github.com/handle
+  linkedinUrl      String?  // professional profile URL
+  behanceUrl       String?  // design portfolio URL
+  portfolioUrl     String?  // personal site / other portfolio
+  // ---- Account verification (email + phone) ----
+  emailVerified   Boolean @default(false)
+  phoneVerified   Boolean @default(false)
+  // ---- Profile photo (base64 data URL; capped small — avatar-size image) ----
+  photoData       String?   // base64 (no data: prefix) of jpeg/png web avatar
+  photoMime       String?   // image/jpeg | image/png | image/webp
+  photoUploadedAt DateTime?
+  // ---- Account state ----
+  disabled       Boolean  @default(false) // admin can disable an account; login is blocked while true
+  tosAcceptedAt  DateTime? // when the user accepted Terms of Service + Privacy Policy
+  // ---- Desired job (desired-job preferences shown to matching) ----
+  desiredRole     String?   // e.g. "Senior Frontend Engineer"
+  desiredLocations String?  // comma separated preferred cities / "Remote"
+  desiredJobType  String?   // Full-time | Part-time | Contract | Internship
+  desiredIndustry String?   // e.g. "IT Services & Consulting"
+  // ---- Sourcing database fields ----
+  functionalArea  String?   // e.g. "Engineering - Software & QA", "Maintenance & Plants"
+  industry        String?   // candidate's primary industry, e.g. "IT Services & Consulting"
+  employmentTypePref String? // Full-time | Contract | Part-time | Internship
+  preferredLocations String? // comma separated cities the candidate would relocate to
+  languages       String?   // comma separated, e.g. "English,Hindi"
+  lastActiveAt    DateTime? // freshness signal powering "last active" filters
+  profileSource   String?   // SIGNUP | SYNTHETIC_SEED | IMPORT (data lineage — never claimed real)
+  // Attached CV file (the actual document recruiters receive — separate from resumeText)
+  cvFileName   String?   // original file name, e.g. "Arjun_Mehra_CV.pdf"
+  cvMimeType   String?   // application/pdf | application/msword | vnd.openxmlformats-officedocument.wordprocessingml.document
+  cvData       String?   // base64 of the CV file (SQLite TEXT; capped ~4MB binary)
+  cvUploadedAt DateTime?
+  // 1-minute video resume (recorded in-browser or uploaded; stored on disk like
+  // interview media). PRIVATE-to-candidate until surfaced through recruiter-facing
+  // endpoints the candidate opts into by uploading.
+  videoResumePath      String?   // relative filename under upload/interview-media/ (e.g. video-resume-{userId}-{ts}.webm)
+  videoResumeSeconds   Float?    // duration in seconds (capped at 90)
+  videoResumeIntro     String?   // candidate's own one-line caption for the video
+  videoResumeUploadedAt DateTime?
+  // ---- Company branding (RECRUITER accounts; shown on their job listings) ----
+  companyAbout    String?  // "About the company" paragraph shown on job posts
+  companyWebsite  String?  // e.g. https://technova.ai — linked from job detail
+  companyLogoData String?  // base64 (no data: prefix) of a small square logo
+  companyLogoMime String?  // image/png | image/jpeg | image/webp
+  brandColor      String?  // hex accent e.g. #0F766E used on company chips
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  postedJobs    Job[]
+  applications  Application[]
+  // Master spec §6: multiple resume versions — the ACTIVE version's content is
+  // what the profile CV card shows and what gets snapshotted onto applications.
+  // Older versions stay retrievable/downloadable so the candidate can switch back.
+  workExperiences WorkExperience[]
+  projects        UserProject[]
+  educationEntries EducationEntry[]
+  certifications  Certification[]
+  authChallenges  AuthChallenge[]
+  resumeVersions  ResumeVersion[]
+  folderMemberships CandidateFolderMember[]
+  foldersCreated  CandidateFolder[] @relation("FoldersCreated")
+  consentRecords  ConsentRecord[]
+  jobAlerts     JobAlert[]
+  notifications Notification[]
+  atsIntegrations AtsIntegration[]
+  requisitions  JobRequisition[]
+  assessments   SkillAssessment[]
+  mockInterviews  MockInterview[]
+  guildsCreated    ReferralGuild[]  @relation("GuildsCreated")
+  guildMemberships GuildMembership[] @relation("GuildMemberships")
+  guildPosts       GuildPost[]      @relation("GuildPosts")
+  guildReplies     GuildReply[]     @relation("GuildReplies")
+  messagesSent     Message[]        @relation("MessagesSent")
+  messagesReceived Message[]        @relation("MessagesReceived")
+  savedSearches    SavedSearch[]
+  sourcingEntries  SourcingEntry[]  @relation("SourcingOwner")
+  sourcedEntries   SourcingEntry[]  @relation("SourcingCandidate")
+  usageLogs        UsageLog[]
+}
+
+// [build-batch-3] Direct messaging (candidate ↔ recruiter)
+// Direct 1:1 messaging between a candidate and a recruiter inside the app.
+// Threads are keyed per (candidate ↔ recruiter) pair via a deterministic
+// sorted-id threadKey, so each side sees one conversation with the other —
+// optionally anchored to a job for context. Read receipts are per-message.
+model Message {
+  id          String   @id @default(cuid())
+  threadKey   String   // sorted "userA|userB" pair key — one thread per candidate↔recruiter pair
+  senderId    String
+  sender      User     @relation("MessagesSent", fields: [senderId], references: [id], onDelete: Cascade)
+  recipientId String
+  recipient   User     @relation("MessagesReceived", fields: [recipientId], references: [id], onDelete: Cascade)
+  body        String
+  jobId       String?  // optional job anchor shown as a context chip in the thread
+  read        Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@index([threadKey, createdAt])
+  @@index([recipientId, read])
+  @@index([senderId, createdAt])
+}
+
+// One-time verification challenge: email-verify code, phone OTP or password
+// reset code. Codes are 6-digit, short-lived and single-use; delivery is via
+// the simulated email outbox (EmailLog) — the sandbox has no SMTP/SMS relay.
+model AuthChallenge {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind       String    // EMAIL_VERIFY | PHONE_OTP | PASSWORD_RESET
+  target     String    // the email address or phone the code was sent to
+  code       String    // 6-digit numeric code (demo/sandbox — no hashing needed beyond scope)
+  expiresAt  DateTime
+  consumedAt DateTime?
+  attempts   Int       @default(0) // failed verification attempts against this code
+  createdAt  DateTime  @default(now())
+
+  @@index([userId, kind])
+}
+
+// Master spec §6: one saved CV/resume file version. `isActive` marks the
+// version currently attached to the profile (mirrored into User.cv* fields so
+// existing apply/ATS flows keep working unchanged).
+model ResumeVersion {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label     String   // version name, e.g. "Frontend-focused v2"
+  fileName  String   // original file name, e.g. "Arjun_CV_v2.pdf"
+  mimeType  String   // application/pdf | .doc/.docx mime
+  data      String   // base64 of the file (SQLite TEXT; capped ~4MB like User.cvData)
+  sizeBytes Int?     // approximate decoded size for the UI
+  isActive  Boolean  @default(false)
+  note      String?  // optional candidate note, e.g. "added AWS project bullet"
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+// Master spec §10: immutable audit trail of every application pipeline
+// transition — who changed what, when, from which stage to which stage.
+// Recruiter timeline UI + admin audit views read this; nothing is deleted.
+model ApplicationEvent {
+  id            String   @id @default(cuid())
+  applicationId String
+  type          String   // STATUS_CHANGE | VIEWED | NOTE | OFFER | OFFER_RESPONSE | AI_SCREEN | AI_INVITE | SHARED_WITH_CLIENT | CLIENT_DECISION | RECRUITER_DECISION | ATS_PUSH | ONBOARD
+  fromStatus    String?  // previous application status (null for first event)
+  toStatus      String?  // new application status (null for non-status events)
+  actorRole     String?  // RECRUITER | CANDIDATE | SYSTEM | CLIENT | ADMIN
+  actorName     String?
+  note          String?  // short human-readable context, e.g. "Moved to Offer"
+  createdAt     DateTime @default(now())
+
+  @@index([applicationId, createdAt])
+}
+
+// Master spec §9: recruiter-private candidate folders with per-candidate tags
+// and notes — a lightweight CRM on top of the talent database.
+model CandidateFolder {
+  id          String   @id @default(cuid())
+  recruiterId String
+  recruiter   User     @relation("FoldersCreated", fields: [recruiterId], references: [id], onDelete: Cascade)
+  name        String
+  createdAt   DateTime @default(now())
+  members     CandidateFolderMember[]
+
+  @@unique([recruiterId, name])
+  @@index([recruiterId])
+}
+
+model CandidateFolderMember {
+  id        String   @id @default(cuid())
+  folderId  String
+  folder    CandidateFolder @relation(fields: [folderId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tags      String?  // comma separated, e.g. "react,strong,met-at-event"
+  note      String?  // folder-scoped note about this candidate
+  createdAt DateTime @default(now())
+
+  @@unique([folderId, userId])
+  @@index([userId])
+}
+
+// Master spec §8/§33: candidates can flag suspicious jobs; admins review and
+// can close the offending job from the moderation queue.
+model JobReport {
+  id            String   @id @default(cuid())
+  jobId         String
+  job           Job     @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  reporterEmail String?  // optional — anonymous reports allowed
+  reason        String   // FAKE_JOB | SPAM | EXPIRED | FEE_ASKED | DISCRIMINATORY | OTHER
+  details       String?
+  status        String   @default("OPEN") // OPEN | REVIEWED | ACTIONED
+  adminNote     String?
+  createdAt     DateTime @default(now())
+
+  @@index([status, createdAt])
+  @@index([jobId])
+}
+
+// Master spec §37: privacy consent ledger — one immutable row per consent
+// event (ToS acceptance at signup, recording consent before an AI interview).
+model ConsentRecord {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  kind      String   // TOS | INTERVIEW_RECORDING
+  version   String   @default("1.0") // consent text version accepted
+  context   String?  // e.g. "Senior React Developer @ TechNova" for recording consent
+  createdAt DateTime @default(now())
+
+  @@index([userId, kind])
+}
+
+// Structured employment history (multiple companies per candidate)
+model WorkExperience {
+  id          String  @id @default(cuid())
+  userId      String
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String  // designation, e.g. "Senior Frontend Engineer"
+  company     String
+  isCurrent   Boolean @default(false)
+  startDate   String  // "2021-06" (year-month)
+  endDate     String? // null while isCurrent
+  location    String?
+  description String? // what the candidate built/delivered there
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+}
+
+// Key projects the candidate wants recruiters to see
+model UserProject {
+  id          String  @id @default(cuid())
+  userId      String
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  techStack   String? // comma separated technologies
+  startDate   String? // "2023-01"
+  endDate     String?
+  description String?
+  link        String? // repo / live URL
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+}
+
+model EducationEntry {
+  id          String  @id @default(cuid())
+  userId      String
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  degree      String  // e.g. "B.Tech — Computer Science"
+  institution String
+  startYear   String?
+  endYear     String?
+  score       String? // CGPA / percentage, free text
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Certification {
+  id        String  @id @default(cuid())
+  userId    String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String  // e.g. "AWS Certified Solutions Architect"
+  issuer    String?
+  year      String?
+  link      String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Job {
+  id             String   @id @default(cuid())
+  title          String
+  company        String
+  recruiterId    String
+  recruiter      User     @relation(fields: [recruiterId], references: [id], onDelete: Cascade)
+  description    String
+  location       String
+  jobType        String   @default("Full-time") // Full-time | Part-time | Contract | Internship
+  workMode       String   @default("On-site") // On-site | Remote | Hybrid
+  experienceMin  Float    @default(0)
+  experienceMax  Float    @default(5)
+  salaryMinLpa   Float?
+  salaryMaxLpa   Float?
+  skills         String   @default("") // comma separated
+  openings       Int      @default(1)
+  status         String   @default("ACTIVE") // ACTIVE | PAUSED | CLOSED
+  jdText         String?  // full JD used by AI interviewer
+  viewsCount     Int      @default(0)
+  // ---- AI screening interview (OPTIONAL per job) ----
+  // The recruiter decides whether this role uses an AI interview at all. When
+  // enabled, the recruiter authors the exact questions (voice vs text answer
+  // per question + time limit) — the AI never invents the round.
+  aiInterviewEnabled Boolean @default(false)
+  aiInterviewConfig  String? // JSON: { questions: [{id, text, type: 'VOICE'|'TEXT', timeLimitSec}], includeProfileQuestions: boolean }
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  applications Application[]
+  savedJobs    SavedJob[]
+  reports      JobReport[]
+}
+
+model Application {
+  id           String   @id @default(cuid())
+  jobId        String
+  job          Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  candidateId  String
+  candidate    User     @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  coverNote    String?
+  status       String   @default("APPLIED") // APPLIED | SHORTLISTED | INTERVIEW_SCHEDULED | INTERVIEWED | SHARED_WITH_CLIENT | OFFERED | HIRED | ONBOARDED | REJECTED
+  matchScore   Float?   // computed skill-match % (recruiter-side; never exposed to candidates)
+  source         String   @default("DIRECT") // DIRECT | SHARED_LINK | CAREER_PAGE | REFERRAL (which channel brought the candidate in)
+  // AI screening dossier (recruiter-side only — NEVER shown to the candidate)
+  screenSummary  String?  // JSON: {headline, verdict, matchedSkills[], missingSkills[], experienceFit, screenNote, flags[]}
+  screenVerdict  String?  // STRONG_FIT | GOOD_FIT | WEAK_FIT
+  // Offer management
+  offeredAt      DateTime? // when the offer was sent
+  offerLetter    String?   // JSON: {body, salaryLpa, joiningDate, workMode, generatedAt}
+  offerStatus    String?   // SENT | ACCEPTED | DECLINED
+  // Onboarding tracker (once HIRED)
+  onboardChecklist String? // JSON: [{key, label, done, doneAt}]
+  onboardStatus    String? // PENDING | IN_PROGRESS | COMPLETED
+  // AI resume-authenticity scan (recruiter-side only — NEVER shown to the candidate)
+  authenticityCheck String? // JSON: {level: TRUSTED|REVIEW|HIGH_RISK, flags[], summary}
+  authenticityScore Float?  // 0-100 trust score
+  notes        String?  // recruiter-private evaluation notes (not shown to candidate)
+  viewedAt     DateTime? // first time the recruiter engaged with this application ("recruiter viewed" signal)
+  // CV snapshot attached to THIS application (copied from the profile CV at apply
+  // time, or uploaded fresh in the apply dialog). Snapshotted so the recruiter
+  // always sees the exact CV the candidate applied with, even if the profile CV
+  // is replaced later — and the ATS payload carries the same document.
+  cvFileName String?
+  cvMimeType String?
+  cvData     String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  shortlists Shortlist[]
+
+  @@unique([jobId, candidateId])
+}
+
+model Client {
+  id           String   @id @default(cuid())
+  name         String
+  contactEmail String
+  industry     String?
+  notes        String?
+  addedBy      String?  // recruiter id who manages this client
+  mediaRetentionDays Int? // per-client recording retention override in days (null = platform default 45)
+  createdAt    DateTime @default(now())
+
+  shortlists  Shortlist[]
+  requisitions JobRequisition[]
+}
+
+// Job requisition: a headcount request raised by an in-house recruiter inside
+// their own company. Company leadership (the partner portal) validates the
+// budget and approves the requisition before it can be published as a live job.
+model JobRequisition {
+  id              String   @id @default(cuid())
+  clientId        String
+  client          Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  requestedById   String
+  requestedBy     User     @relation(fields: [requestedById], references: [id], onDelete: Cascade)
+  title           String
+  department      String?  // e.g. "Engineering", "Sales"
+  location        String
+  jobType         String   @default("Full-time") // Full-time | Part-time | Contract | Internship
+  workMode        String   @default("On-site") // On-site | Remote | Hybrid
+  experienceMin   Float    @default(0)
+  experienceMax   Float    @default(5)
+  salaryMinLpa    Float?
+  salaryMaxLpa    Float?
+  openings        Int      @default(1)
+  skills          String   @default("") // comma separated
+  justification   String?  // business case for the headcount
+  budgetConfirmed Boolean  @default(false) // recruiter confirms manpower budget is validated
+  status          String   @default("PENDING_APPROVAL") // PENDING_APPROVAL | APPROVED | REJECTED | PUBLISHED
+  approverName    String?  // who approved/rejected (company leadership)
+  approverNote    String?  // leadership note on the decision
+  decidedAt       DateTime?
+  publishedJobId  String?  // Job created when the approved requisition was published
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Shortlist {
+  id            String   @id @default(cuid())
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  clientId      String?
+  client        Client?  @relation(fields: [clientId], references: [id])
+  recruiterNote String?
+  status        String   @default("PENDING_INTERVIEW") // PENDING_INTERVIEW | INTERVIEW_IN_PROGRESS | COMPLETED | REPORT_SHARED
+  clientDecision String?  // APPROVED | REJECTED | ON_HOLD (set by the client partner)
+  clientFeedback String?  // free-text note from the client
+  decidedAt     DateTime? // when the client decided
+  createdAt     DateTime @default(now())
+
+  interview Interview?
+}
+
+model SavedJob {
+  id        String   @id @default(cuid())
+  userId    String
+  jobId     String
+  createdAt DateTime @default(now())
+  job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, jobId])
+}
+
+model JobAlert {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  keyword      String   @default("") // matches title / skills / description
+  location     String   @default("") // substring match on job location
+  minSalaryLpa Float?   // only jobs paying at least this
+  lastSeenAt   DateTime @default(now()) // new matches counted after this
+  createdAt    DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Interview {
+  id          String    @id @default(cuid())
+  shortlistId String    @unique
+  shortlist   Shortlist @relation(fields: [shortlistId], references: [id], onDelete: Cascade)
+  candidateName String
+  jobTitle      String
+  domain        String // e.g. "React / Frontend", "Java Backend"
+  difficulty    String @default("MEDIUM") // EASY | MEDIUM | HARD
+  questions     String @default("[]") // JSON array [{qIndex, question, focusArea, modelAnswerPoints}]
+  status        String @default("PENDING") // PENDING | IN_PROGRESS | COMPLETED
+  consentAt     DateTime? // when the candidate accepted the recording/transcription consent before starting
+  overallScore  Float?
+  verdict       String? // STRONG_HIRE | HIRE | MAYBE | NO_HIRE  (AI suggestion — ADVISORY ONLY)
+  report        String? // JSON final report {strengths, weaknesses, dimensionScores, recommendation, aiSummary}
+  // The HUMAN final call (recruiter/interviewer). The AI verdict above is a
+  // suggestion shown beside it — the recruiter's decision is authoritative.
+  recruiterDecision     String?   // ADVANCE | HOLD | REJECT
+  recruiterDecisionNote String?   // free-text rationale (≤600 chars)
+  recruiterDecidedAt    DateTime?
+  recruiterDecidedBy    String?   // User.id of the deciding recruiter
+  startedAt     DateTime?
+  completedAt   DateTime?
+  createdAt     DateTime @default(now())
+
+  answers Answer[]
+}
+
+model Answer {
+  id          String   @id @default(cuid())
+  interviewId String
+  interview   Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+  qIndex      Int
+  question    String
+  transcript  String?  // candidate answer text
+  audioPresent Boolean @default(false)
+  score       Float?
+  feedback    String?
+  strengths   String?  // JSON array of strings
+  improvements String? // JSON array of strings
+  mediaPath   String?  // relative filename under upload/interview-media/ (recorded answer)
+  mediaKind   String?  // "video" | "audio"
+  mediaSeconds Float?  // recording duration in seconds
+  takeLabel   String?  // which candidate take was submitted: "A" | "B" (null = legacy single take)
+
+  @@unique([interviewId, qIndex])
+}
+
+// Verified skill assessment: a candidate takes a short MCQ quiz per domain and
+// earns a Verified Skill Badge (GOLD >= 90, SILVER >= 75, BRONZE >= 60). Each
+// attempt is one row; the recruiter side only ever sees the BEST badge per domain.
+model SkillAssessment {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  domain      String   // e.g. "React & Frontend", "SQL & Databases", "Aptitude & Logic"
+  questions   String   @default("[]") // JSON [{qIndex, question, options[4], correctIndex, explanation}]
+  answers     String?  // JSON [selected option indexes]
+  score       Int?     // correct count at submit
+  total       Int      @default(5)
+  percentage  Float?
+  badge       String?  // GOLD | SILVER | BRONZE | NONE (null = attempt in progress)
+  completedAt DateTime?
+  createdAt   DateTime @default(now())
+
+  @@index([userId, domain])
+}
+
+// In-app notification feed (recruiter: new application / AI interview done / client verdict;
+// candidate: shortlisted / interview invite / client decision; client: report shared)
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String   // APPLICATION | SHORTLIST | INTERVIEW_DONE | CLIENT_VERDICT | REPORT_SHARED
+  title     String   // short headline, e.g. "New application · Senior React Dev"
+  body      String   @default("") // one-line detail
+  meta      String?  // JSON: { jobId, applicationId, shortlistId, actorName, decision, ... }
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId, read])
+  @@index([userId, createdAt])
+}
+
+// ATS integration: lets a recruiter connect their own Applicant Tracking
+// System endpoint so interviewed candidates (full structured dossier) can be
+// pushed straight into their existing pipeline for the next process.
+model AtsIntegration {
+  id          String   @id @default(cuid())
+  recruiterId String
+  recruiter   User     @relation(fields: [recruiterId], references: [id], onDelete: Cascade)
+  name        String   // display name, e.g. "Company hiring pipeline"
+  webhookUrl  String   // HTTPS endpoint that accepts the candidate JSON payload
+  apiKey      String?  // optional shared secret, sent as x-ats-api-key header
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  pushes AtsPush[]
+}
+
+// Audit log of every ATS push attempt (success or failure) with the exact
+// payload snapshot, so recruiters can prove what was transferred.
+model AtsPush {
+  id            String         @id @default(cuid())
+  integrationId String
+  integration   AtsIntegration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+  interviewId   String?        // the AI interview dossier that was pushed
+  candidateName String
+  jobTitle      String
+  status        String         // SUCCESS | FAILED
+  httpStatus    Int?           // HTTP status returned by the ATS endpoint
+  message       String?        // outcome detail / error reason
+  payload       String?        // JSON snapshot of what was sent
+  createdAt     DateTime       @default(now())
+
+  @@index([integrationId, createdAt])
+}
+
+// Outbound email log — every process mail the platform sends to a candidate
+// (application received, interview invite, offer, status update). In this
+// sandbox there is no outbound SMTP server, so mails are recorded here (and
+// shown in the candidate's "Email updates" mailbox card) instead of being
+// delivered to a real inbox. Swapping in a real SMTP/SES provider only
+// requires adding a transport call inside src/lib/email.ts.
+model EmailLog {
+  id        String   @id @default(cuid())
+  toEmail   String   // recipient address (candidate email)
+  toUserId  String?  // linked user (null = external recipient)
+  subject   String
+  body      String   // plain-text mail body
+  kind      String   // APPLICATION_RECEIVED | INTERVIEW_INVITE | INTERVIEW_SUBMITTED | OFFER | STATUS_UPDATE | SHARED_WITH_CLIENT
+  status    String   @default("SENT") // SENT | FAILED
+  meta      String?  // JSON context: { jobTitle, company, applicationId, ... }
+  createdAt DateTime @default(now())
+
+  @@index([toUserId, createdAt])
+}
+
+// Mock interview PRACTICE mode: a candidate drills interview questions against
+// the AI on any track, completely in private. Nothing here is ever visible to
+// recruiters or clients — it is a self-improvement gym, not an evaluation.
+model MockInterview {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  track       String   // practice track, e.g. "React & Frontend", "Behavioral / HR"
+  difficulty  String   @default("MEDIUM") // EASY | MEDIUM | HARD
+  questions   String   @default("[]") // JSON [{qIndex, question, focusArea, tip}]
+  status      String   @default("IN_PROGRESS") // IN_PROGRESS | COMPLETED
+  report      String?  // JSON {overallScore, strengths[], focusAreas[], summary, perQuestion:[{qIndex, score, feedback, sampleAnswer}]}
+  completedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId, createdAt])
+}
+
+// Referral guilds: candidate-run community spaces where members post referral
+// openings, ask for intros, and help each other get seen. Brand-neutral and
+// moderated through simple guild codes of conduct stored per guild.
+model ReferralGuild {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String   @default("")
+  focus       String   @default("") // topic area, e.g. "Frontend", "Data", "Design"
+  guidelines  String   @default("") // short code-of-conduct text shown when joining
+  isPublic    Boolean  @default(true)
+  createdById String
+  createdBy   User     @relation("GuildsCreated", fields: [createdById], references: [id], onDelete: Cascade)
+  members     GuildMembership[]
+  posts       GuildPost[]
+  createdAt   DateTime @default(now())
+}
+
+model GuildMembership {
+  id        String        @id @default(cuid())
+  guildId   String
+  guild     ReferralGuild @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User          @relation("GuildMemberships", fields: [userId], references: [id], onDelete: Cascade)
+  role      String        @default("MEMBER") // MEMBER | LEAD
+  createdAt DateTime      @default(now())
+
+  @@unique([guildId, userId])
+  @@index([userId])
+}
+
+model GuildPost {
+  id          String        @id @default(cuid())
+  guildId     String
+  guild       ReferralGuild @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  authorId    String
+  author      User          @relation("GuildPosts", fields: [authorId], references: [id], onDelete: Cascade)
+  kind        String        @default("REFERRAL") // REFERRAL (offering an intro) | ASK (looking for one) | UPDATE (general)
+  title       String
+  body        String        @default("")
+  jobTitle    String?       // optional role reference
+  companyName String?       // optional company reference (plain text, user-entered)
+  createdAt   DateTime      @default(now())
+  replies     GuildReply[]
+
+  @@index([guildId, createdAt])
+}
+
+model GuildReply {
+  id        String    @id @default(cuid())
+  postId    String
+  post      GuildPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User      @relation("GuildReplies", fields: [authorId], references: [id], onDelete: Cascade)
+  body      String
+  createdAt DateTime  @default(now())
+
+  @@index([postId, createdAt])
+}
+
+// Saved search: the recruiter's stored filter set + alert
+// preferences. `query` holds the FULL serialized filter state (keywords,
+// boolean text, every structured filter) so a saved search can be rerun
+// exactly. `newCount` tracks candidates first seen since the last run so the
+// alerts panel can say "12 new profiles matched".
+model SavedSearch {
+  id             String    @id @default(cuid())
+  recruiterId    String
+  recruiter      User      @relation(fields: [recruiterId], references: [id], onDelete: Cascade)
+  name           String
+  query          String    @default("{}") // JSON of the full filter state
+  alertFrequency String    @default("OFF") // OFF | DAILY | WEEKLY
+  lastRunAt      DateTime?
+  lastNotifiedAt DateTime?
+  newCount       Int       @default(0) // candidates newly matching since last run
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@unique([recruiterId, name])
+  @@index([recruiterId])
+}
+
+// Recruiter-private sourcing tracker — a per-(recruiter, candidate) CRM row
+// that follows a candidate through the sourcing workflow independent of any
+// job application. Statuses are the master-spec sourcing funnel.
+model SourcingEntry {
+  id              String    @id @default(cuid())
+  recruiterId     String
+  recruiter       User      @relation("SourcingOwner", fields: [recruiterId], references: [id], onDelete: Cascade)
+  candidateId     String
+  candidate       User      @relation("SourcingCandidate", fields: [candidateId], references: [id], onDelete: Cascade)
+  status          String    @default("NEW") // NEW | REVIEWED | SHORTLISTED | CONTACTED | RESPONDED | INTERESTED | NOT_INTERESTED | SUBMITTED_TO_CLIENT | INTERVIEWING | HIRED | ON_HOLD
+  note            String?   // latest free-text sourcing note (≤1000 chars)
+  tags            String?   // comma separated, ≤12 tags of ≤30 chars
+  assignedToId    String?   // teammate User.id the candidate is assigned to
+  assignedToName  String?   // denormalised display name
+  lastContactedAt DateTime?
+  followUpAt      DateTime? // follow-up reminder
+  history         String    @default("[]") // JSON [{at, actor, action, detail}]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([recruiterId, candidateId])
+  @@index([recruiterId, status])
+  @@index([candidateId])
+}
+
+// Usage log powering quotas + the sourcing activity dashboard. One row per
+// tracked event: SEARCH, SAVED_SEARCH_RUN, PROFILE_VIEW, CONTACT_REVEAL,
+// EXPORT, OUTREACH. Quota limits live in src/lib/talent-config.ts (platform
+// defaults, admin-editable later via a settings surface).
+model UsageLog {
+  id        String   @id @default(cuid())
+  actorId   String
+  actor     User     @relation(fields: [actorId], references: [id], onDelete: Cascade)
+  kind      String   // SEARCH | SAVED_SEARCH_RUN | PROFILE_VIEW | CONTACT_REVEAL | EXPORT | OUTREACH
+  meta      String?  // JSON context, e.g. { filters, resultCount, candidateId }
+  createdAt DateTime @default(now())
+
+  @@index([actorId, kind, createdAt])
+}
+
+// Sponsored employer-branding slots shown on the Talent Search landing panel
+// (the space before a recruiter runs their first search — the candidate
+// database stays hidden until then). `kind="house"` cards promote SeeWe's own
+// modules; `kind="sponsored"` cards are advertiser slots. All current seeds
+// are clearly-labelled synthetic demo advertisers.
+model TalentAd {
+  id        String   @id @default(cuid())
+  company   String
+  headline  String
+  body      String
+  ctaLabel  String   @default("Learn more")
+  ctaUrl    String   @default("#")
+  accent    String   @default("teal") // teal | amber | rose | slate (card theme)
+  kind      String   @default("sponsored") // sponsored | house
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([active, kind])
+}

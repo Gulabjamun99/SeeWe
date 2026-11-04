@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SeeWe AI — Complete User Manual</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+<style>
+@page {
+  size: 720px 1020px;
+  margin: 0;
+}
+:root {
+  /* Cascade palette — steel blue family */
+  --page-bg: #f4f5f6;
+  --section-bg: #e8eaeb;
+  --card-bg: #e9ecee;
+  --stripe: #f3f4f5;
+  --header-fill: #4d6b7a;
+  --cover-deep: #37474f;
+  --cover-mid: #4a616d;
+  --border: #b1bdc3;
+  --border-soft: #dee4e7;
+  --icon: #457085;
+  --accent: #3993c1;
+  --accent-deep: #2f7ba3;
+  --text: #1c1e1f;
+  --muted: #868c90;
+  --ok: #3c8855;
+  --warn: #a08652;
+  --bad: #8b4943;
+  --info: #3f678f;
+}
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 720px;
+  background: #f4f5f6;
+  color: var(--text);
+  font-family: 'Inter', 'Liberation Sans', 'Noto Color Emoji', sans-serif;
+  line-break: strict;
+  word-break: normal;
+  overflow-wrap: break-word;
+}
+@media screen {
+  html { height: auto; display: flex; justify-content: center; background: #dfe2e4; }
+  body { margin: 20px auto; box-shadow: 0 8px 40px rgba(28,30,31,.18); }
+}
+
+/* ───────────────────────── COVER ───────────────────────── */
+.cover {
+  width: 720px;
+  height: 1020px;
+  box-sizing: border-box;
+  break-after: page;
+  overflow: hidden;
+  position: relative;
+  background: linear-gradient(158deg, #37474f 0%, #4a616d 78%, #52707e 100%);
+  color: #f2f5f6;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 64px;
+}
+.cover .deco-ring {
+  position: absolute; border-radius: 50%;
+  border: 1.5px solid rgba(242,245,246,.16);
+}
+.cover .ring-a { width: 300px; height: 300px; top: 64px; right: 56px; }
+.cover .ring-b { width: 170px; height: 170px; top: 129px; right: 121px; border-color: rgba(242,245,246,.10); }
+.cover .ring-c { width: 240px; height: 240px; bottom: 130px; left: 64px; border-color: rgba(242,245,246,.12); }
+.cover .deco-line { display: none; }
+.cover-kicker {
+  display: inline-flex; align-items: center; gap: 10px;
+  font-size: 12px; font-weight: 700; letter-spacing: 3.5px; text-transform: uppercase;
+  color: #bcd7e4; margin-bottom: 26px;
+}
+.cover-kicker .dot { width: 8px; height: 8px; border-radius: 50%; background: #6db5d8; }
+.cover-title {
+  font-family: 'Playfair Display', 'Inter', serif;
+  font-size: 84px; font-weight: 900; line-height: .95; margin: 0 0 6px 0; letter-spacing: -.5px;
+}
+.cover-sub {
+  font-size: 21px; font-weight: 600; color: #e8eef1; margin: 26px 0 12px 0; line-height: 1.4;
+}
+.cover-desc {
+  font-size: 13.5px; line-height: 1.7; color: rgba(242,245,246,.72); max-width: 480px; margin: 0 0 34px 0;
+}
+.cover-roles { display: flex; flex-wrap: wrap; gap: 10px; max-width: 100%; }
+.cover-chip {
+  border: 1px solid rgba(242,245,246,.35); border-radius: 999px;
+  padding: 9px 18px; font-size: 12.5px; font-weight: 600; letter-spacing: .4px; color: #f2f5f6;
+  background: rgba(242,245,246,.07);
+}
+.cover-foot {
+  position: absolute; left: 64px; right: 64px; bottom: 52px;
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 11px; letter-spacing: 2.2px; text-transform: uppercase; color: rgba(242,245,246,.62);
+  font-weight: 600;
+}
+
+/* ───────────────────────── CONTENT FLOW ───────────────────────── */
+.main-content { padding: 54px 60px 46px 60px; }
+
+.chapter-header { break-after: avoid; break-inside: avoid; margin-top: 26px; }
+.chapter-header.first { margin-top: 0; }
+.section-tag {
+  font-size: 10.5px; font-weight: 800; letter-spacing: 3px; text-transform: uppercase;
+  color: var(--accent-deep); margin-bottom: 8px;
+}
+.section-title {
+  font-family: 'Playfair Display', 'Inter', serif;
+  font-size: 30px; font-weight: 900; line-height: 1.12; margin: 0 0 12px 0; color: var(--text);
+}
+.section-title::after {
+  content: ''; display: block; width: 64px; height: 3px;
+  background: var(--accent); border-radius: 2px; margin-top: 12px; margin-bottom: 16px;
+}
+.chapter-lede { font-size: 14px; line-height: 1.68; color: #3d4245; margin: 0 0 6px 0; text-align: justify; }
+
+.sub-title {
+  break-after: avoid; break-inside: avoid;
+  font-size: 16.5px; font-weight: 800; color: var(--text);
+  margin: 24px 0 8px 0; padding-left: 12px; border-left: 4px solid var(--accent); line-height: 1.3;
+}
+.minor-title {
+  break-after: avoid; font-size: 13.5px; font-weight: 700; color: var(--icon); margin: 14px 0 6px 0;
+}
+.body-text { font-size: 13px; line-height: 1.66; color: #2b2f31; margin: 0 0 10px 0; text-align: justify; }
+.body-text b { color: var(--text); }
+.hl { color: var(--accent-deep); font-weight: 600; }
+
+/* cards */
+.card {
+  background: #ffffff; border: 1px solid var(--border-soft); border-radius: 12px;
+  padding: 16px 18px; margin: 0 0 14px 0; break-inside: avoid;
+}
+.card-title { font-size: 13px; font-weight: 800; margin: 0 0 8px 0; color: var(--text); }
+.card-text { font-size: 12.5px; line-height: 1.62; color: #3a3f42; margin: 0; text-align: justify; }
+
+.callout {
+  background: #eef4f8; border: 1px solid #cfe0ea; border-left: 4px solid var(--accent);
+  border-radius: 10px; padding: 14px 16px; margin: 4px 0 14px 0; break-inside: avoid;
+}
+.callout .co-title { font-size: 12px; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent-deep); margin-bottom: 6px; }
+.callout p { font-size: 12.5px; line-height: 1.62; margin: 0; color: #2b3a42; text-align: justify; }
+
+.warnbox {
+  background: #f6f1e8; border: 1px solid #e3d7c2; border-left: 4px solid var(--warn);
+  border-radius: 10px; padding: 12px 16px; margin: 4px 0 14px 0; break-inside: avoid;
+}
+.warnbox p { font-size: 12.5px; line-height: 1.6; margin: 0; color: #4d4433; }
+
+/* tables */
+table { width: 100%; border-collapse: collapse; font-size: 12px; margin: 6px 0 14px 0; }
+thead { display: table-header-group; }
+tr { break-inside: avoid; }
+th {
+  background: var(--header-fill); color: #ffffff; text-align: left;
+  font-weight: 700; font-size: 11.5px; letter-spacing: .3px;
+  padding: 8px 10px; border: 1px solid #405966;
+}
+td { padding: 8px 10px; border: 1px solid var(--border-soft); vertical-align: top; color: #2b2f31; line-height: 1.5; }
+tbody tr:nth-child(odd) td { background: var(--stripe); }
+tbody tr:nth-child(even) td { background: #ffffff; }
+.keep { break-inside: avoid; }
+
+/* chips */
+.chip-row { display: flex; flex-wrap: wrap; gap: 7px; margin: 2px 0 12px 0; max-width: 100%; }
+.chip {
+  flex: 0 1 auto; min-width: 0; max-width: 100%;
+  font-size: 11px; font-weight: 600; color: var(--icon);
+  background: #eaf1f5; border: 1px solid #d3e0e8; border-radius: 999px; padding: 4px 11px;
+}
+.chip.ok { color: var(--ok); background: #ecf4ee; border-color: #d2e5d8; }
+.chip.warn { color: var(--warn); background: #f5f0e6; border-color: #e2d8c4; }
+.chip.bad { color: var(--bad); background: #f5ecea; border-color: #e2cfcb; }
+.chip.info { color: var(--info); background: #ecf1f6; border-color: #d2dfeb; }
+
+/* step list */
+.step { display: flex; gap: 12px; margin-bottom: 11px; break-inside: avoid; }
+.step-num {
+  flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%;
+  background: #eaf1f5; border: 1.5px solid var(--accent); color: var(--accent-deep);
+  font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center;
+  margin-top: 1px;
+}
+.step-body { min-width: 0; }
+.step-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+.step-desc { font-size: 12.5px; line-height: 1.6; color: #3a3f42; text-align: justify; }
+
+/* pipeline flow bar */
+.flow-bar { display: flex; flex-wrap: wrap; gap: 6px; max-width: 100%; margin: 6px 0 14px 0; break-inside: avoid; }
+.flow-step {
+  flex: 1 1 auto; min-width: 86px; max-width: 100%;
+  background: #ffffff; border: 1.5px solid #cfdbe2; border-radius: 9px;
+  padding: 9px 8px; text-align: center;
+}
+.flow-step .fs-n { font-size: 10px; font-weight: 800; color: var(--accent-deep); letter-spacing: 1.5px; display: block; }
+.flow-step .fs-t { font-size: 11.5px; font-weight: 700; color: var(--text); display: block; margin-top: 2px; }
+.flow-step.hot { background: #eaf1f5; border-color: var(--accent); }
+.flow-step + .flow-step::before { content: ''; }
+
+/* bullet lists */
+ul.list { margin: 4px 0 12px 0; padding-left: 20px; }
+ul.list li { font-size: 12.5px; line-height: 1.62; color: #2b2f31; margin-bottom: 5px; break-inside: avoid; }
+ul.list li b { color: var(--text); }
+
+/* two-col mini grid */
+.grid-2 { display: flex; flex-wrap: wrap; gap: 12px; margin: 4px 0 14px 0; }
+.grid-2 .gcard {
+  flex: 1 1 270px; min-width: 240px; max-width: 100%; box-sizing: border-box;
+  background: #ffffff; border: 1px solid var(--border-soft); border-radius: 12px; padding: 14px 16px;
+  break-inside: avoid;
+}
+.gcard .g-ico { font-size: 17px; margin-bottom: 6px; }
+.gcard .g-title { font-size: 13px; font-weight: 800; margin-bottom: 5px; }
+.gcard .g-text { font-size: 12px; line-height: 1.6; color: #3a3f42; margin: 0; }
+
+/* verdict rows */
+.verdict-line { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 4px 0 12px 0; break-inside: avoid; }
+
+/* qa */
+.faq { margin-bottom: 12px; break-inside: avoid; }
+.faq .q { font-size: 13px; font-weight: 800; color: var(--text); margin-bottom: 3px; }
+.faq .a { font-size: 12.5px; line-height: 1.62; color: #3a3f42; text-align: justify; }
+
+/* ───────────────────────── ENDING ───────────────────────── */
+.ending {
+  width: 720px; height: 1020px; box-sizing: border-box;
+  break-before: page; overflow: hidden; position: relative;
+  background: linear-gradient(200deg, #37474f 0%, #4a616d 85%);
+  color: #f2f5f6;
+  display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;
+  padding: 64px;
+}
+.ending .deco-ring { position: absolute; border-radius: 50%; border: 1.5px solid rgba(242,245,246,.14); }
+.ending .ring-a { width: 320px; height: 320px; bottom: 90px; right: 72px; }
+.ending .ring-b { width: 200px; height: 200px; top: 90px; left: 72px; }
+.end-title { font-family: 'Playfair Display', 'Inter', serif; font-size: 44px; font-weight: 900; line-height: 1.15; margin: 0 0 16px 0; }
+.end-text { font-size: 14px; line-height: 1.75; color: rgba(242,245,246,.78); max-width: 440px; margin: 0 0 30px 0; }
+.end-chips { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+.end-foot {
+  position: absolute; bottom: 54px; left: 64px; right: 64px;
+  font-size: 10.5px; letter-spacing: 2.5px; text-transform: uppercase; color: rgba(242,245,246,.55); font-weight: 600;
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ COVER ═══════════════ -->
+<div class="cover">
+  <div class="deco-ring ring-a"></div>
+  <div class="deco-ring ring-b"></div>
+  <div class="deco-ring ring-c"></div>
+
+  <div class="cover-kicker"><span class="dot"></span> Official Product Manual</div>
+  <h1 class="cover-title">SeeWe AI</h1>
+  <div class="cover-sub">The Complete User Manual&nbsp;— every role, every flow, every feature.</div>
+  <p class="cover-desc">A modern job marketplace with a built-in AI interviewer. This manual walks all three
+  roles&nbsp;— Job Seeker, Recruiter and Client Partner&nbsp;— through the full hiring lifecycle, step by step, from
+  the first job post to the final offer.</p>
+  <div class="cover-roles">
+    <span class="cover-chip">Job Seeker</span>
+    <span class="cover-chip">Recruiter</span>
+    <span class="cover-chip">Client Partner</span>
+    <span class="cover-chip">Admin Console</span>
+  </div>
+
+  <div class="cover-foot">
+    <span>Edition 2025 · v1.0</span>
+    <span>Platform Guide</span>
+  </div>
+</div>
+
+<!-- ═══════════════ MAIN CONTENT ═══════════════ -->
+<div class="main-content">
+
+  <!-- ── QUICK START ── -->
+  <div class="chapter-header first">
+    <div class="section-tag">Quick Start · Hinglish</div>
+    <h2 class="section-title">Pehle Yeh Padhiye&nbsp;— Ek Nazar Mein</h2>
+    <p class="chapter-lede">SeeWe AI ek modern job marketplace hai jisme hiring platform ke andar hi ek AI
+    interviewer built-in hai. Candidate apply karta hai, recruiter shortlist karta hai, aur phir AI candidate ka
+    video interview leta hai&nbsp;— bolte hue answers, automatic transcript, scoring aur complete report ke saath.
+    Poora process teen roles ke beech chalta hai, aur yeh manual har role ka poora flow explain karta hai.</p>
+  </div>
+
+  <div class="grid-2">
+    <div class="gcard">
+      <div class="g-ico">👤</div>
+      <div class="g-title">Job Seeker (Candidate)</div>
+      <p class="g-text">Profile banata hai, resume AI se parse karwata hai, jobs dhoondhta aur apply karta hai.
+      Shortlist hone par AI video interview deta hai&nbsp;— sirf bolke. Score kabhi nahi dikhta, sirf updates aate hain.</p>
+    </div>
+    <div class="gcard">
+      <div class="g-ico">🏢</div>
+      <div class="g-title">Recruiter</div>
+      <p class="g-text">Job post karta hai, applicants manage karta hai, AI interview start karta hai, poora
+      report + transcript + recording dekhta hai, client ko report bhejta hai, aur ATS me candidate push karta hai.</p>
+    </div>
+    <div class="gcard">
+      <div class="g-ico">🤝</div>
+      <div class="g-title">Client Partner</div>
+      <p class="g-text">Apna registered email use karke portal me login karta hai. Shared AI reports review
+      karta hai&nbsp;— score, dimensions, transcript, recordings&nbsp;— aur Approve / On hold / Decline decision deta hai.</p>
+    </div>
+    <div class="gcard">
+      <div class="g-ico">🛡️</div>
+      <div class="g-title">Admin (Platform Console)</div>
+      <p class="g-text">Platform-wide console demo users ke liye. Is manual ke scope me teen hiring roles
+      cover kiye gaye hain&nbsp;— admin console internal operations ke liye hai.</p>
+    </div>
+  </div>
+
+  <div class="keep">
+  <table>
+    <thead>
+      <tr><th style="width:32%">Demo Account</th><th style="width:38%">Email</th><th>Kaun use kare</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Candidate · React Dev</td><td>arjun.mehta@gmail.com</td><td>Job seeker flow test karne ke liye</td></tr>
+      <tr><td>Recruiter · TechNova</td><td>ananya@technova.com</td><td>Recruiter suite ke liye (do aur: rahul@cloudnine.com, priya@dataforge.com)</td></tr>
+      <tr><td>Client · Flipkart</td><td>partnerships@flipkart-demo.com</td><td>Client portal ke liye (Infosys aur Zoho emails bhi seeded hain)</td></tr>
+      <tr><td>Admin · Platform console</td><td>admin@seewee.ai</td><td>Platform admin view</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="warnbox">
+    <p><b>Note:</b> Yeh demo-lite system hai&nbsp;— <b>password kahin nahi hota</b>. Sign in karte waqt sirf email
+    (aur naye users ke liye naam) chahiye. Demo chips par click karke account ek click me load ho jata hai.
+    Manual bhar me saare button names aur labels bilkul waise hi likhe hain jaise app me dikhte hain.</p>
+  </div>
+
+  <!-- ── CHAPTER 1 ── -->
+  <div class="chapter-header">
+    <div class="section-tag">Chapter 01</div>
+    <h2 class="section-title">Platform Overview</h2>
+    <p class="chapter-lede">SeeWe AI do cheezein ek hi jagah laata hai: ek job marketplace jahan candidates
+    jobs dhoondhte hain aur recruiters roles post karte hain, aur ek AI interviewer jo shortlisted candidates ke
+    video interviews khud conduct karta hai. Interview ke saare jawab bolke diye jaate hain&nbsp;— AI unhe
+    speech-to-text me convert karta hai, har answer ko evaluate karta hai, aur ek complete rated report banata hai
+    jise recruiter aur client review karte hain.</p>
+  </div>
+
+  <div class="body-text">Platform ka core promise simple hai: <b>hiring with evidence</b>. Traditionally ek
+  recruiter phone screens par ghante bitata hai; yahan AI interviewer 24×7 available hai, har candidate se same
+  structured process follow karta hai, aur har answer ki recording + transcript + score save karta hai. Recruiter
+  ke paas evidence-based decision lene ke liye poora dossier hota hai, aur client ko sirf relevant reports
+  dikhte hain. Candidate ke liye process transparent hai&nbsp;— usse kabhi bhi apna AI score nahi dikhta, sirf
+  clear status updates aate hain.</div>
+
+  <div class="sub-title">The hiring pipeline&nbsp;— end to end</div>
+  <div class="flow-bar">
+    <div class="flow-step"><span class="fs-n">STAGE 1</span><span class="fs-t">Applied</span></div>
+    <div class="flow-step"><span class="fs-n">STAGE 2</span><span class="fs-t">Shortlisted</span></div>
+    <div class="flow-step hot"><span class="fs-n">STAGE 3</span><span class="fs-t">AI Interview</span></div>
+    <div class="flow-step"><span class="fs-n">STAGE 4</span><span class="fs-t">Client Review</span></div>
+    <div class="flow-step"><span class="fs-n">STAGE 5</span><span class="fs-t">Offer</span></div>
+  </div>
+  <div class="body-text">Yeh panch-stage pipeline har role ke screen par alag-alag roop me dikhta hai.
+  Candidate ko apne application card par ek animated 5-dot tracker dikhta hai. Recruiter ko Applicants inbox me
+  status badges aur timeline chips dikhte hain. Client ko sirf Stage 4 ke reports dikhte hain jo recruiter ne
+  share kiye hain. Har stage ka data automatically aage flow karta hai&nbsp;— kisi ko manually same data dobara
+  enter nahi karna padta.</div>
+
+  <div class="sub-title">Core concepts&nbsp;— jo har role ko pata hone chahiye</div>
+  <div class="card">
+    <div class="card-title">🤖 AI Interviewer</div>
+    <p class="card-text">Ek virtual interviewer jo candidate ke resume aur job ki JD (job description) dono se
+    milkar questions generate karta hai. Questions <b>bolkar</b> puchhe jaate hain (text-to-speech), candidate
+    bolke jawab deta hai, aur speech engine (ASR) usse text me convert kar deta hai. Total 10 questions hote
+    hain&nbsp;— 6 core skill questions + 4 quick profile questions (Section 3.8 me detail).</p>
+  </div>
+  <div class="card">
+    <div class="card-title">🚦 Verdicts&nbsp;— AI ka final recommendation</div>
+    <p class="card-text">Interview complete hone par AI overall score (0–10) nikalta hai aur chaar dimensions
+    grade karta hai: <b>Technical Depth, Communication, Problem Solving, Domain Knowledge</b>. Score se verdict
+    banta hai. Verdict sirf recruiter aur client dikhta hai&nbsp;— candidate ko kabhi nahi.</p>
+    <div class="verdict-line">
+      <span class="chip ok">🚀 Strong Hire · 8.0+</span>
+      <span class="chip info">✅ Hire · 6.5+</span>
+      <span class="chip warn">🤔 Maybe · 5.0+</span>
+      <span class="chip bad">❌ No Hire · below 5.0</span>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">🔒 Score privacy&nbsp;— candidate kabhi score nahi dekhta</div>
+    <p class="card-text">Yeh platform ka design principle hai, sirf UI rule nahi. Candidate ke interview room,
+    dashboard, notifications aur API responses&nbsp;— sab jagah se AI score, feedback aur verdict
+    server par hi filter ho jaate hain. Candidate ko sirf "Answer submitted" jaise neutral confirmations milte
+    hain. Scores sirf recruiter aur (share hone par) client ke paas jaate hain.</p>
+  </div>
+  <div class="card">
+    <div class="card-title">📦 ATS dossier&nbsp;— candidate ka poora record ek payload me</div>
+    <p class="card-text">Interview complete hone ke baad recruiter candidate ka complete dossier apne company ke
+    ATS (Applicant Tracking System) me push kar sakta hai&nbsp;— profile, position, interview plan, saare answers,
+    transcripts, scores, report aur client decision. Webhook push ke alawa JSON copy/download aur per-position
+    CSV export bhi available hai (Section 4.6).</p>
+  </div>
+
+  <!-- ── CHAPTER 2 ── -->
+  <div class="chapter-header">
+    <div class="section-tag">Chapter 02</div>
+    <h2 class="section-title">Getting Started&nbsp;— Sign In &amp; Navigation</h2>
+    <p class="chapter-lede">Platform ek single-page app hai&nbsp;— home page se hi saare views open hote hain.
+    Sign in karne ke liye header me <b>Sign in</b> button dabaiye. Ek hi dialog se chaaron account types me
+    entry milti hai, aur demo accounts one-click chips ke saath pre-loaded hain.</p>
+  </div>
+
+  <div class="sub-title">2.1 Sign in kaise karein</div>
+  <div class="step"><div class="step-num">1</div><div class="step-body">
+    <div class="step-title">Sign in dialog kholein</div>
+    <div class="step-desc">Header ke "Sign in" button par click karein&nbsp;— ya koi bhi gated action (job save,
+    apply, alert) karne ki koshish karein, dialog khud khul jayega. Dialog ka title hai <b>"Sign in to SeeWe"</b>
+   &nbsp;— "One account. Three worlds&nbsp;— hire, get hired, or review hires."</div>
+  </div></div>
+  <div class="step"><div class="step-num">2</div><div class="step-body">
+    <div class="step-title">Account type chunein</div>
+    <div class="step-desc">Chaar radio cards: <b>Job Seeker</b> (default), <b>Recruiter</b>, <b>Client</b>,
+    <b>Admin</b>. Client role me naam field disabled hota hai&nbsp;— "Auto-filled from client registry"&nbsp;— kyunki
+    organisation ka naam aapke recruiter ke client registry se match hota hai.</div>
+  </div></div>
+  <div class="step"><div class="step-num">3</div><div class="step-body">
+    <div class="step-title">Naam aur email bharein (ya demo chip dabayein)</div>
+    <div class="step-desc">Naye Job Seeker / Recruiter ke liye naam + email chahiye. Neeche
+    <b>"Demo accounts&nbsp;— one click:"</b> section me chips hain&nbsp;— chip par click karne se role, naam, email sab
+    pre-fill ho jata hai aur toast aata hai: <i>"Demo account loaded&nbsp;— press Continue"</i>.</div>
+  </div></div>
+  <div class="step"><div class="step-num">4</div><div class="step-body">
+    <div class="step-title">Continue dabayein</div>
+    <div class="step-desc">Button har role ke hisaab se badalta hai: <b>"Continue as Job Seeker ✨"</b>,
+    <b>"Continue as Recruiter 🚀"</b>, <b>"Continue as Client Partner 🤝"</b>, <b>"Platform Admin 🛡️"</b>.
+    Success par toast: <i>"Welcome to SeeWe, {aapka naam}! 👋"</i>&nbsp;— aur aap seedha apne role ke dashboard me
+    pahunch jaate hain.</div>
+  </div></div>
+
+  <div class="callout">
+    <div class="co-title">Client login ka special rule</div>
+    <p>Client role sirf tab kaam karta hai jab aapka email kisi recruiter ne <b>Clients</b> tab me registered
+    kiya ho (Client ka contact email). Email match nahi hua to error: <i>"No client partnership found for this
+    email. Ask your SeeWe recruiter to add you as a client first."</i> Pehli login par client ka user account
+    automatically ban jata hai.</p>
+  </div>
+
+  <div class="sub-title">2.2 Navigation&nbsp;— screen ke upar kya hai</div>
+  <table>
+    <thead><tr><th style="width:26%">Header element</th><th>Kya karta hai</th></tr></thead>
+    <tbody>
+      <tr><td><b>Nav links</b></td><td>Role ke hisaab se badalte hain. Candidate: <i>Home / Find Jobs / My Journey</i>. Recruiter: <i>Home / Find Jobs / Hiring Hub</i>. Client: <i>Home / Find Jobs / Client Portal</i>.</td></tr>
+      <tr><td><b>🔔 NotificationBell</b></td><td>In-app notifications&nbsp;— har 25 second me refresh, unread badge (9+ cap), "Mark all read", 7-day digest strip + "Email digest" preview. Kisi notification par click karne se aap seedha us record par le jate hain (deep-link).</td></tr>
+      <tr><td><b>🔵 JobAlertsBell</b></td><td>Sirf candidates ke liye&nbsp;— har 60 second me naye matching jobs check karta hai. Har alert ke saath "N new" pill dikhta hai. Popover band karte hi alerts "seen" mark ho jaate hain.</td></tr>
+      <tr><td><b>Theme toggle</b></td><td>Light / dark mode switch&nbsp;— poori app me lagu hota hai.</td></tr>
+      <tr><td><b>Account menu</b></td><td>Avatar dropdown: Dashboard, Copy email, <b>Sign out</b> (toast: "Signed out&nbsp;— see you soon! 👋").</td></tr>
+      <tr><td><b>Mobile (☰)</b></td><td>Chhoti screen par hamburger sheet me wahi nav + Sign in / Register milta hai; touch targets 44px+ hain.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="body-text">Ek important baat: app <b>single-page</b> hai, isliye sab kuch home route se hi chalta
+  hai. Views switch hone par URL change hota dikhta hai lekin page reload nahi hota&nbsp;— isliye session, filters
+  aur draft data sab zinda rehte hain. Sign out karne par view home par reset ho jata hai aur deep-link state
+  clear ho jata hai.</div>
+
+  <!-- ── CHAPTER 3 ── -->
+  <div class="chapter-header">
+    <div class="section-tag">Chapter 03</div>
+    <h2 class="section-title">Job Seeker Guide&nbsp;— Candidate ka Poora Flow</h2>
+    <p class="chapter-lede">Candidate ka safar chausar steps me chalta hai: profile complete karo, jobs dhoondo,
+    apply karo, shortlist hone par AI video interview do, aur phir My Journey me tracking karo. Candidate ko
+    AI score kabhi nahi dikhta&nbsp;— usse sirf clean status updates aur next steps milte hain.</p>
+  </div>
+
+  <div class="sub-title">3.1 My Journey dashboard</div>
+  <div class="body-text">Login ke baad candidate seedha <b>My Journey</b> dashboard par aata hai. Header me
+  greeting ("Welcome back, {naam} 👋"), tagline ("Your mission control&nbsp;— applications, AI interviews and
+  profile"), aur teen stat badges hain: <b>N applications</b>, <b>N AI interviews graded</b>,
+  <b>N reports shared</b>. Neeche Profile Strength meter aur chaar tabs hain:</div>
+  <div class="chip-row">
+    <span class="chip">1 · Applications</span>
+    <span class="chip">2 · Saved</span>
+    <span class="chip">3 · Alerts</span>
+    <span class="chip">4 · My Profile</span>
+  </div>
+
+  <div class="sub-title">3.2 Profile banana&nbsp;— My Profile tab</div>
+  <div class="body-text">Profile form me ye fields hain: <b>Full name, Phone, Headline, Location, Skills
+  (comma separated), Experience (yrs), Current salary (LPA), Expected salary (LPA), Education, Notice period</b>.
+  Notice period dropdown me options hain: <i>Immediate joiner / 15 days / 1 month / 2 months / 3 months</i>.
+  Ek alag <b>"Visible to recruiters" toggle</b> hai&nbsp;— ON par "Your profile appears in recruiter talent
+  searches", OFF par "Hidden&nbsp;— recruiters cannot find you in talent search. Applications stay active."
+  Sabse neeche <b>Resume summary</b> textarea hai&nbsp;— hint kehti hai: "Saved drafts power your AI interview
+  questions&nbsp;— keep them sharp." <b>Save Profile</b> dabane par PATCH call chalti hai; network fail hone par
+  draft device par save rehta hai aur amber banner dikhta hai: "Offline draft on this device&nbsp;— check your
+  connection and press Save profile to sync it."</div>
+
+  <div class="keep">
+  <table>
+    <thead><tr><th style="width:44%">Profile Strength check</th><th style="width:20%">Weight</th><th>Kab complete hota hai</th></tr></thead>
+    <tbody>
+      <tr><td>List your skills</td><td>20</td><td>Skills field filled</td></tr>
+      <tr><td>Save your resume text</td><td>20</td><td>Resume text 100+ characters</td></tr>
+      <tr><td>Add a headline</td><td>15</td><td>Headline filled</td></tr>
+      <tr><td>Set years of experience</td><td>15</td><td>Experience set</td></tr>
+      <tr><td>Add your city</td><td>10</td><td>Location filled</td></tr>
+      <tr><td>Add education</td><td>10</td><td>Education filled</td></tr>
+      <tr><td>Add a phone number</td><td>10</td><td>Phone filled</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="body-text">Total 100 points ka animated ring banta hai. Bands: <b>90+ All-star profile</b>,
+  <b>70+ Strong profile</b>, <b>40+ Good start</b>, warna <b>Getting started</b>. Missing items amber chips ke
+  roop me dikhte hain aur unpe click karne se seedha My Profile tab khulta hai&nbsp;— matlab profile strong karne ka
+  rasta ek click ka hai.</div>
+
+  <div class="sub-title">3.3 AI Resume Parser</div>
+  <div class="body-text"><b>"Instant resume import"</b> card me do input modes hain: <b>Paste text</b>
+  (12,000 characters tak) aur <b>Upload file</b>&nbsp;— drag-and-drop dropzone jo PDF, DOCX, TXT, MD, CSV, JSON
+  accept karta hai (3 MB tak; PDF/DOCX server par parse hote hain). <b>"✨ Analyze with AI"</b> dabane par
+  parser resume padhta hai aur ek review screen deta hai jisme <b>"AI parsed"</b> ya <b>"Heuristic parse"</b>
+  badge hota hai. Aap fields edit kar sakte hain: Headline, Location, Experience, Current company, Education,
+  aur Skills chips (add/remove). Checkbox <b>"Also save the full resume text (powers better AI interviews)"</b>
+  default ON rehta hai. <b>"Apply N fields to my profile"</b> par click karne se sab kuch profile me chala
+  jata hai&nbsp;— toast: "Profile updated with AI-extracted details ✨".</div>
+
+  <div class="sub-title">3.4 Jobs dhoondhna&nbsp;— Find Jobs</div>
+  <div class="body-text">Find Jobs page par header line hoti hai: <i>"{N} live openings waiting for you"</i>.
+  Filter form me: <b>Keyword</b> (role, skill, company), <b>Location</b>, <b>Job type</b> (Full-time / Part-time
+  / Contract / Internship), <b>Work mode</b> (Remote / Hybrid / On-site). Advanced row me: <b>Experience</b>
+  (Fresher se 10+ yrs tak), <b>Salary</b> (5 LPA+ se 30 LPA+), <b>Posted</b> (last 3/7/15/30 days), aur
+  <b>Sort by</b>&nbsp;— default <b>"Newest first"</b> (freshness-first ranking) plus salary high/low. Filters active
+  hone par <b>"Save this search"</b> chip aata hai&nbsp;— saved searches chips ki tarah ek click me wapas lag jaate
+  hain (max 8).</div>
+  <div class="body-text">Har job card par: company avatar + naam, title, location, experience range, salary
+  (₹18 – ₹28 LPA format), posted date, skill chips, aur signed-in candidates ke liye <b>"⚡ N% match"</b> pill
+  (aapke skills aur job ke required skills ka overlap). Neeche salary bands ka <b>"Salary insights"</b> strip
+  bhi hota hai jo current search ke roles ka market scale dikhata hai. Kisi bhi company ke naam par click karne
+  se us company ki <b>saari active jobs</b> ek dialog me khul jaati hain.</div>
+
+  <div class="sub-title">3.5 Apply karna</div>
+  <div class="step"><div class="step-num">1</div><div class="step-body">
+    <div class="step-title">Job detail dialog kholein</div>
+    <div class="step-desc">Job card par click karein. Dialog me poori JD, saare skills, views count, aur ek AI
+    note hota hai: <i>"SeeWe AI reads this role's JD. If you're shortlisted, your interview questions will be
+    generated specifically from this job and your resume."</i></div>
+  </div></div>
+  <div class="step"><div class="step-num">2</div><div class="step-body">
+    <div class="step-title">Cover note likhein (optional)</div>
+    <div class="step-desc">600-character counter ke saath ek optional note: <i>"Why are you a great fit for
+    {title}? Recruiters love context…"</i></div>
+  </div></div>
+  <div class="step"><div class="step-num">3</div><div class="step-body">
+    <div class="step-title">"Send my application ⚡" dabayein</div>
+    <div class="step-desc">Success toast: <i>"🎉 Applied to {title}! Track it in My Journey."</i> Dobara apply
+    karne ki koshish par same job ke liye button badal jata hai: <i>"You have already applied for this position
+    🎉"</i>&nbsp;— duplicate applications block ho jaate hain.</div>
+  </div></div>
+
+  <div class="sub-title">3.6 Applications track karna&nbsp;— status pipeline</div>
+  <div class="body-text">Applications tab me har application ka card hai jisme 5-dot animated tracker hota hai:
+  <b>Applied → Shortlisted → AI Interview → Client Review → Offer</b>. Completed dots check ban jaate hain,
+  current dot pulse karta hai, aur Offer dot Hire hone par 🎉 ke saath green ho jata hai. Card par recruiter
+  engagement signal bhi dikhta hai: <i>"👁 Viewed by recruiter · 2h ago"</i> ya <i>"Awaiting recruiter
+  review"</i>.</div>
+  <table>
+    <thead><tr><th style="width:34%">Aapko kya dikhta hai</th><th>Matlab</th></tr></thead>
+    <tbody>
+      <tr><td><b>"▶ Resume AI Interview"</b> (pulsing button)</td><td>Recruiter ne shortlist kar diya&nbsp;— AI interview start/resume karne ke liye ready hai.</td></tr>
+      <tr><td><b>"📊 Interview completed&nbsp;— tap to review your answers"</b> + "✓ Submitted" chip</td><td>Interview ho gaya&nbsp;— apne answers ka transcript review kar sakte hain (score ke bina).</td></tr>
+      <tr><td><b>"Shared with {client}"</b> badge</td><td>Aapka AI report hiring client ko bhej diya gaya hai&nbsp;— client review chal raha hai.</td></tr>
+      <tr><td><b>"Offer received&nbsp;— congratulations!"</b> card</td><td>Company ne aapko HIRED mark kiya hai. 🎉</td></tr>
+      <tr><td><b>"Withdraw application"</b> (sirf Applied stage par)</td><td>Confirm dialog ke baad application withdraw ho jati hai (baad me dobara apply kar sakte hain).</td></tr>
+    </tbody>
+  </table>
+
+  <div class="sub-title">3.7 AI Video Interview&nbsp;— step by step (candidate ka sabse important section)</div>
+  <div class="body-text">Interview room full-screen experience hai. Usme camera, microphone, aur SeeWe ka AI
+  interviewer hota hai&nbsp;— <b>koi typing nahi</b>. Neeche poora flow diya gaya hai:</div>
+
+  <div class="step"><div class="step-num">1</div><div class="step-body">
+    <div class="step-title">Room prepare hota hai</div>
+    <div class="step-desc">"Preparing your interview room…" ke baad AI aapke resume + job ki JD se 10 questions
+    ka plan banata hai. Agar beech me interview adhoora chhoda tha, to wahi se resume hota hai&nbsp;— answered
+    questions waise hi milte hain aur aap pehle unanswered question par land karte hain.</div>
+  </div></div>
+  <div class="step"><div class="step-num">2</div><div class="step-body">
+    <div class="step-title">Welcome card</div>
+    <div class="step-desc">"You have been shortlisted 🎉"&nbsp;— aapka naam, "AI video interview · {job title}", aur
+    badges: <b>domain</b> (jaise IT &amp; Software), <b>level</b> (EASY / MEDIUM / HARD), <b>N questions</b>.
+    Checklist aapko batati hai: <i>"Answer out loud&nbsp;— your words are transcribed automatically"</i>,
+    <i>"Voice-only room&nbsp;— just speak; no typing needed"</i>. Privacy line: <i>"Private room. Nothing is
+    broadcast live&nbsp;— your answers are shared only with the hiring team."</i> <b>"Begin AI Interview ✨"</b>
+    dabane par camera permission maangi jaati hai (mana karne par bhi voice answers chalte rehte hain).</div>
+  </div></div>
+  <div class="step"><div class="step-num">3</div><div class="step-body">
+    <div class="step-title">Question suniye&nbsp;— AI bolkar puchhta hai</div>
+    <div class="step-desc">AI interviewer question <b>bol kar</b> puchhta hai (mute button bhi hai). Card par
+    "Question {i} of {N}", focus area badge (jaise "State architecture"), aur <b>Replay</b> button hota hai.
+    Left side par aapka camera preview (mirror view, "You" badge, Rec indicator + mic level bars) aur progress
+    card hai&nbsp;— jisme answered/total count aur tappable question navigator dots hain.</div>
+  </div></div>
+  <div class="step"><div class="step-num">4</div><div class="step-body">
+    <div class="step-title">Bol kar jawab dijiye</div>
+    <div class="step-desc"><b>"🎙 Record Answer"</b> dabaiye aur bolna shuru karein. Recording me video + audio
+    dono capture hote hain (camera off ho to sirf audio), 3-minute ki limit hai, aur live REC timer chalta hai.
+    Bolte waqt aapke shabd read-only transcript box me appearance late hain (ASR). Word-count hint bhi milti
+    hai: <i>"{n} words · aim for 40–150 words"</i>.</div>
+  </div></div>
+  <div class="step"><div class="step-num">5</div><div class="step-body">
+    <div class="step-title">Take A / Take B&nbsp;— dobara bolne ka option</div>
+    <div class="step-desc">Har question par <b>2 takes</b> record kar sakte hain. "Add Take B" se naya take,
+    preview players se dono compare, "Discard" se bekar take hatao&nbsp;— phir best take submit karo. Jo take
+    discard hota hai wo kabhi upload hi nahi hota; sirf selected take server par jata hai.</div>
+  </div></div>
+  <div class="step"><div class="step-num">6</div><div class="step-body">
+    <div class="step-title">Submit karein</div>
+    <div class="step-desc"><b>"Submit Take A ➜"</b> dabane par upload hota hai. AI evaluate karta hai, lekin
+    aapko sirf neutral confirmation dikhta hai&nbsp;— green <b>"Answer received"</b> card: <i>"Your response is
+    safely recorded. The hiring team reviews every answer after the interview."</i> Score, feedback, strengths
+   &nbsp;— kuch bhi nahi dikhta. "Next Question ➜" se aage badhein.</div>
+  </div></div>
+  <div class="step"><div class="step-num">7</div><div class="step-body">
+    <div class="step-title">Aakhri 4 quick profile questions</div>
+    <div class="step-desc">Core questions ke baad AI 4 preliminary questions puchhta hai&nbsp;— ye AI-graded nahi
+    hote, ye seedha aapki profile me sync ho jaate hain. Toast: <i>"Response saved to your profile"</i>.
+    (Inke exact text niche diye hain.)</div>
+  </div></div>
+
+  <div class="keep">
+  <table>
+    <thead><tr><th style="width:16%">Question</th><th>Poochha jata hai</th><th style="width:26%">Profile field</th></tr></thead>
+    <tbody>
+      <tr><td>Q7</td><td>"Which city do you currently live in, and would you be open to relocating for this role?"</td><td>Location</td></tr>
+      <tr><td>Q8</td><td>"How many years of total work experience do you have, and what kind of work have you mostly been doing?"</td><td>Experience (yrs)</td></tr>
+      <tr><td>Q9</td><td>"What is your notice period&nbsp;— are you currently serving any notice, and how soon can you join if selected?"</td><td>Notice period</td></tr>
+      <tr><td>Q10</td><td>"Finally, what is your current salary, and what are your salary expectations for this role?"</td><td>Current + Expected CTC</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="step"><div class="step-num">8</div><div class="step-body">
+    <div class="step-title">Finish &amp; Submit</div>
+    <div class="step-desc">Last question ke baad <b>"Finish &amp; Submit"</b> dabta hai. Staged screen chalti hai:
+    "Securing your recordings… / Uploading your responses… / Notifying the hiring team…"&nbsp;— phir
+    <b>"Interview complete 🎉"</b> screen aati hai: answers count, session time, aur 3 next steps
+    (recordings securely stored → hiring team har answer review karta hai → updates My Journey me aayenge).
+    <b>"Review your answers"</b> se aap apna poora transcript dobara dekh sakte hain&nbsp;— apne jawab, apni
+    recordings ke saath, bina kisi score ke.</div>
+  </div></div>
+
+  <div class="callout">
+    <div class="co-title">Score privacy promise</div>
+    <p>Candidate experience me <b>AI score, verdict, ranking, per-question feedback&nbsp;— kuch bhi nahi dikhta</b>.
+    Ye sirf screen chhupana nahi hai: interview ke API responses bhi server par candidate-safe hote hain
+    (score fields network par travel hi nahi karte). Notification bhi score-free hota hai: <i>"Your interview
+    responses are with the hiring team…"</i>. Honest design&nbsp;— aap answers review kar sakte hain, lekin
+    evaluation sirf hiring team ke paas hai.</p>
+  </div>
+
+  <div class="sub-title">3.8 Job Alerts&nbsp;— naye jobs ki notification</div>
+  <div class="body-text">Alerts tab me <b>"Create a job alert"</b> card hai: <b>Keyword</b> (jaise React,
+  Python, DevOps), <b>Location</b>, optional <b>Min. salary (LPA)</b>&nbsp;— phir <b>"Create alert"</b>.
+  Har alert card par: naam (jaise "React in Bengaluru"), <b>"🔔 N new"</b> badge ya "All caught up",
+  total matches, aur 4 sample matching jobs. <b>"Browse matches"</b> se search pre-applied hoti hai.
+  Header ke blue JobAlertsBell se bhi alerts milte hain aur "Manage" se Alerts tab khulta hai. Weekly
+  <b>Email digest</b> preview dialog bhi hai (demo me simulated send hota hai).</div>
+
+  <div class="sub-title">3.9 Candidate ke liye pro tips</div>
+  <ul class="list">
+    <li><b>Resume summary sharp rakhein</b>&nbsp;— AI interviewer isi text se questions banata hai; jitna relevant content, utne personalized questions.</li>
+    <li><b>Profile 100% complete karein</b>&nbsp;— recruiters talent search me poori profile wale candidates ko hi dhoondhte hain (visible toggle ON rakhna mat bhoolen).</li>
+    <li><b>Interview me 40–150 words per answer bolen</b>&nbsp;— hint bhi yahi deti hai. Ek take kharab lage to Take B record karein.</li>
+    <li><b>Quiet room, decent lighting</b>&nbsp;— camera optional hai (voice answers bhi count hote hain), lekin video answers hiring team ko zyada confident impression dete hain.</li>
+    <li><b>Preliminary questions sincerely answer karein</b>&nbsp;— location, experience, notice period aur CTC aapki profile me automatically update hote hain, jisse recruiters ko accurate data milta hai.</li>
+  </ul>
+
+  <!-- ── CHAPTER 4 ── -->
+  <div class="chapter-header">
+    <div class="section-tag">Chapter 04</div>
+    <h2 class="section-title">Recruiter Guide&nbsp;— Hiring Hub ka Poora Flow</h2>
+    <p class="chapter-lede">Recruiter suite ek complete hiring command center hai: jobs post karo, applicants
+    screen karo, AI interviews chalao, reports review karo, clients ke saath share karo, aur final candidates ko
+    ATS me push karo. Dashboard ke 7 tabs ek structured flow me arranged hain&nbsp;— left se right jaane par hiring
+    lifecycle complete ho jati hai.</p>
+  </div>
+
+  <div class="sub-title">4.1 Dashboard tour</div>
+  <div class="body-text">Hero strip me greeting, <b>"+ Post a Job"</b> button, aur 4 quick stats hain:
+  <b>Active Jobs · Total Applicants · Shortlisted · AI Interviews Done</b>. Stats ke niche analytics strip hai
+  (Section 4.11). Phir 7 tabs:</div>
+  <div class="keep">
+  <table>
+    <thead><tr><th style="width:26%">Tab</th><th>Ek line me</th></tr></thead>
+    <tbody>
+      <tr><td><b>My Jobs</b></td><td>Aapki posted jobs&nbsp;— edit, duplicate, pause, close, delete.</td></tr>
+      <tr><td><b>Applicants</b></td><td>Pipeline inbox&nbsp;— shortlist, interview, share, reject, notes, CSV export.</td></tr>
+      <tr><td><b>Interview Hub</b></td><td>AI interview command center&nbsp;— position-wise groups, 360° candidate detail, ATS push.</td></tr>
+      <tr><td><b>Talent Search</b></td><td>Poora candidate pool search karo&nbsp;— skills, experience, notice period ke saath.</td></tr>
+      <tr><td><b>Client Reports</b></td><td>"Boardroom view"&nbsp;— saare AI reports ek jagah, client decisions ke saath.</td></tr>
+      <tr><td><b>Recordings</b></td><td>Har interview answer ki recording library&nbsp;— play, download, ZIP, storage cleanup.</td></tr>
+      <tr><td><b>Clients</b></td><td>Client companies register karo aur unki recording retention set karo.</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="sub-title">4.2 Job post karna</div>
+  <div class="body-text"><b>"Post a Job"</b> dialog ka subtitle kehta hai: <i>"Goes live instantly. The richer
+  the JD, the sharper the AI interview questions."</i> Fields: <b>Job title*, Location*, Job type, Work mode,
+  Description*, Skills* (comma separated&nbsp;— quick-add chips: + React + Node.js + Python + SQL + AWS + Figma),
+  Openings, Exp. min/max (yrs), Salary min/max (LPA)</b>, aur ek highlighted <b>Full JD</b> textarea jiska
+  label clearly kehta hai: "used by AI interviewer to generate questions". <b>"🚀 Post Job"</b> dabane par job
+  turant ACTIVE ho jaati hai. Candidate apply karta hai to system aapko notification deta hai:
+  <i>"{candidate} applied with a {n}% skill match&nbsp;— worth a look."</i></div>
+
+  <div class="sub-title">4.3 Applicants inbox&nbsp;— structured pipeline management</div>
+  <div class="body-text">Applicants tab me upar job chips hain (<i>All jobs · {n}</i> + har job ka chip), status
+  dropdown, <b>CSV export</b> icon aur refresh. Har application card par: candidate avatar + naam, status badge,
+  headline, <i>"X yrs exp · location · Wants ₹N LPA · notice label"</i>, skill chips, cover note quote, aur
+  right side par <b>"🎯 {n}% match"</b> pill (excellent / strong / Low skill overlap). Har card par mini
+  timeline chips bhi hote hain: <i>Shortlisted ✓ → AI Interview {score}/10 → Shared · {client} → 👍 Client
+  approved ✓</i>.</div>
+  <table>
+    <thead><tr><th style="width:30%">Action button</th><th>Kya hota hai</th></tr></thead>
+    <tbody>
+      <tr><td><b>Shortlist ★</b></td><td>Dialog khulta hai: "Pick the client who should receive this candidate's AI report once the interview completes"&nbsp;— "Skip&nbsp;— decide later" ya koi client choose karke "Shortlist candidate". Candidate ko ⭐ notification jata hai.</td></tr>
+      <tr><td><b>Start AI Interview 🤖</b></td><td>Full-screen Interview Room khulta hai (candidate is interview me apne side se join karta hai). Client choose nahi hua to pehle "Send report to client after interview" dialog aata hai. Aap chahein to room se bahar aakar baad me wapas aa sakte hain&nbsp;— candidate apna interview khud complete karta hai.</td></tr>
+      <tr><td><b>Resume Interview</b></td><td>Live (in-progress) interview wapas kholne ke liye.</td></tr>
+      <tr><td><b>View AI Report</b></td><td>Report dialog: VerdictRing (Overall score {x}/10), AI Summary, poora transcript, "Download PDF".</td></tr>
+      <tr><td><b>Share Report →</b></td><td>Client picker → "Share report →"&nbsp;— report us client ke portal me chali jaati hai (sirf completed interviews share hote hain). Toast: "📤 AI report shared with {client}".</td></tr>
+      <tr><td><b>Reject</b></td><td>Candidate pipeline se bahar (candidate ko gentle "Application update" notification jata hai).</td></tr>
+      <tr><td><b>Notes</b></td><td>"Private note · only you see this"&nbsp;— 2000 characters, autosave. Candidate ko kabhi nahi dikhta.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="sub-title">4.4 AI interview andar se kaise kaam karta hai</div>
+  <div class="body-text"><b>Domain detection:</b> Interview start hone par AI job ke title/skills se domain
+  detect karta hai&nbsp;— 13 buckets: <i>IT &amp; Software, Data &amp; Analytics, Design &amp; Creative, Sales &amp;
+  Business Development, Marketing &amp; Communications, Finance &amp; Accounting, Human Resources, Operations
+  &amp; Support, Education &amp; Training, Healthcare, Legal &amp; Compliance, Hospitality &amp; Travel,
+  General Business</i>. Non-technical domains ke rules me coding questions explicitly ban hote hain&nbsp;— matlab
+  Sales, HR, Finance, Operations sabke liye domain-appropriate questions aate hain. Agar AI kisi reason se
+  questions na bana paye to domain-neutral template fallback chalti hai.</div>
+  <div class="body-text"><b>Question plan (10 questions):</b> Q1 intro/experience-fit, Q2–Q5 core skill aur
+  scenario questions (JD ∩ resume overlap se), Q6 practical problem-solving&nbsp;— in sab ke saath rubric points
+  (<i>modelAnswerPoints</i>) hote hain jinke against answers grade hote hain. Q7–Q10 wo 4 preliminary profile
+  questions hain (Section 3.7) jinke spoken answers parse hokar candidate profile me <b>auto-feed</b> ho jaate
+  hain&nbsp;— location, experience, notice period, CTC.</div>
+  <div class="body-text"><b>Evaluation:</b> Har core answer ka score 0–10 (1 decimal) hota hai, saath me AI
+  feedback, strengths aur improvements. Final overall score core answers ka mean hota hai aur verdict banta hai
+  (🚀 Strong Hire 8+, ✅ Hire 6.5+, 🤔 Maybe 5+, ❌ No Hire neeche). Report me 4 dimension scores
+  (Technical Depth, Communication, Problem Solving, Domain Knowledge), AI summary, strengths, watch-outs aur
+  recommendation hoti hai. Interview complete hone par aapko notification aata hai:
+  <i>"{verdict emoji} AI interview done · {candidate} · {x.x}/10"</i>.</div>
+
+  <div class="sub-title">4.5 Interview Hub&nbsp;— sab interviews ek jagah</div>
+  <div class="body-text">Hub upar 4 KPI cards dikhata hai: <b>Positions interviewed · Total interviews ·
+  Completed · Avg score ({x.x}/10)</b>. Ek powerful <b>search box</b> hai&nbsp;— candidate, position, skill, city,
+  verdict label, aur <i>saare question texts</i> me search karta hai. Verdict filter pills:
+  <i>All · ⏳ In progress · 🚀 Strong Hire · ✅ Hire · 🤔 Maybe · ❌ No Hire</i>. Neeche job-wise collapsible
+  groups hain&nbsp;— har group header par interview count, completed count, in-progress count, avg score pill aur
+  <b>"Export CSV"</b> button (18-column ATS-import ready sheet: contact, CTC, notice, score, verdict, timeline
+  sab columns).</div>
+  <div class="body-text">Kisi bhi candidate par <b>"Open →"</b> dabane se 360° detail dialog khulta hai. Usme
+  (a) big score tile, (b) 6 auto-captured detail chips&nbsp;— Location, Experience, Notice period, Current CTC,
+  Expected CTC, Headline&nbsp;— jinme interview se capture hui values par teal <b>"via interview"</b> badge hota
+  hai, (c) contact + education + skill-match chips, (d) <b>Journey strip</b>: "Applied {date} · Recruiter
+  viewed {date} · Interview {date}" + application status + client decision, (e) Resume snapshot, (f)
+  <b>"Questions asked &amp; candidate answers"</b>&nbsp;— poora question plan, har question ka focus area, candidate
+  ka transcript, per-question score, AI note, aur inline video/audio player, (g) <b>AI report summary</b>&nbsp;—
+  dimension bars, strengths, watch-outs, recommendation, aur (h) <b>ATS handoff panel</b>.</div>
+
+  <div class="sub-title">4.6 ATS Integration&nbsp;— candidate ko apne ATS me bhejna</div>
+  <div class="body-text">Interview Hub ke detail dialog me <b>"Send to ATS"</b> panel hai (sirf completed
+  interviews par unlock hota hai): <i>"Push {candidate}'s complete dossier&nbsp;— profile, interview plan, answers,
+  recordings metadata, scores and report&nbsp;— into your own hiring pipeline for the next process."</i></div>
+  <div class="step"><div class="step-num">1</div><div class="step-body">
+    <div class="step-title">Integration register karein (ek baar)</div>
+    <div class="step-desc"><b>"+ New integration"</b> → Integration name (jaise "Company hiring pipeline"),
+    <b>Webhook URL</b> (aapke ATS ka POST endpoint, jaise https://ats.yourcompany.com/hooks/seewee), optional
+    <b>API key</b> (x-ats-api-key header me jaati hai) → <b>"Save integration"</b>. Integration pause/delete
+    bhi ho sakta hai.</div>
+  </div></div>
+  <div class="step"><div class="step-num">2</div><div class="step-body">
+    <div class="step-title">Push karein</div>
+    <div class="step-desc"><b>"Push to ATS"</b> se server aapke webhook par poora dossier JSON POST karta hai
+    (8-second timeout). Success: "{candidate} delivered to {integration}". Fail hone par honest warning dikhti
+    hai aur attempt log ho jata hai&nbsp;— aap phir bhi manual handoff kar sakte hain.</div>
+  </div></div>
+  <div class="step"><div class="step-num">3</div><div class="step-body">
+    <div class="step-title">Ya manual handoff karein</div>
+    <div class="step-desc"><b>"Copy JSON"</b>&nbsp;— payload clipboard me (ATS ke import box me paste karo);
+    <b>"Download"</b>&nbsp;— seewee-ats-{candidate}.json file. Neeche <b>push log</b> me har attempt ka result
+    (✓/✗, message, timestamp) dikhta hai. Per-position <b>Export CSV</b> se bulk import sheet bhi milti hai.</div>
+  </div></div>
+
+  <div class="keep">
+  <table>
+    <thead><tr><th style="width:22%">Dossier section</th><th>Kya-kya data jaata hai</th></tr></thead>
+    <tbody>
+      <tr><td><b>candidate</b></td><td>Naam, email, phone, headline, location, skills, experience, current/expected salary, notice period, education, 2000-char resume summary.</td></tr>
+      <tr><td><b>position</b></td><td>Job title, company, location, required skills, salary band, openings, status.</td></tr>
+      <tr><td><b>application</b></td><td>Application id, status, match score, applied/viewed timestamps.</td></tr>
+      <tr><td><b>interview</b></td><td>Poora plan (saare questions + focus areas + rubric), har answer ka transcript + score + feedback + strengths + recording metadata, overall score, verdict, full report (4 dimensions).</td></tr>
+      <tr><td><b>process</b></td><td>Shortlist status, client name, client decision, client feedback, decided at.</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="sub-title">4.7 Talent Search</div>
+  <div class="body-text">Talent Search me filters hain: keyword (naam, headline, skills, resume, location&nbsp;—
+  400ms debounce), exact <b>Skill</b> match ("Java" "JavaScript" se alag hai), <b>Location</b>, Min/Max
+  experience, <b>Notice period</b> (Immediate / ≤15 / ≤30 / ≤60 / ≤90 days), aur <b>"Applied to my jobs"</b>
+  toggle (ON = sirf aapke pipeline wale; OFF = poora platform pool&nbsp;— lekin privacy ka dhyan: sirf wo
+  candidates dikhte hain jinka "Visible to recruiters" ON hai). Pipeline me aaye candidates par wahi actions
+  milte hain: Shortlist ★, Start AI Interview 🤖, Resume Interview, Reject.</div>
+
+  <div class="sub-title">4.8 Clients tab</div>
+  <div class="body-text"><b>"+ Add Client"</b> dialog me: <b>Company name*</b>, <b>Contact email*</b> (yahi
+  email client portal ka login banega), <b>Industry</b>, <b>Internal notes</b>. Client card par share count,
+  industry badge, aur <b>"Recording retention"</b> policy hoti hai&nbsp;— Default 45 days, ya 7 se 365 din tak
+  per-client override. Retention decide karti hai ki candidate recordings kitne din baad storage cleanup me
+  delete hongi.</div>
+
+  <div class="sub-title">4.9 Client Reports&nbsp;— boardroom view</div>
+  <div class="body-text">Ye tab saare completed AI interviews ka "boardroom view" hai: stat tiles
+  (<b>Total reports · Avg AI score · Strong-hire rate</b>), client filter, card/table layout toggle. Har report
+  card par verdict medal, candidate, role, client, ScoreRing aur client-decision badge (👍/⏸/👎) hai.
+  <b>"Open Full Dossier"</b> se poora transcript + report khulta hai aur <b>"Download PDF"</b> se branded
+  confidential print view milti hai. Table mode me columns: Candidate · Role · Client · Score · Verdict ·
+  Completed.</div>
+
+  <div class="sub-title">4.10 Recordings library</div>
+  <div class="body-text">Recordings tab me summary tiles hain: <b>Recordings · Total footage · Video/Audio
+  counts · Candidates · On disk size</b>. Filters: type (All/Video/Audio) aur candidate dropdown.
+  <b>"Download all ({n})"</b> se poore set ka ZIP banta hai (numbered files jaise 01-{candidate}-Q1.webm +
+  manifest). <b>"Clean storage"</b> se orphan recordings aur retention-crossed files sweep hoti hain (toast
+  batata hai kitni files gayi, kitna space free hua). Har row par Watch (inline transcript + player), download
+  icon, per-answer score chip aur verdict pill hai.</div>
+
+  <div class="sub-title">4.11 Analytics strip</div>
+  <ul class="list">
+    <li><b>Applicants per job</b>&nbsp;— top 6 jobs ki bar chart.</li>
+    <li><b>AI interview verdicts</b>&nbsp;— Strong Hire / Hire / Maybe / No Hire counts + avg score pill.</li>
+    <li><b>Hiring funnel</b>&nbsp;— har top job ka segmented bar: Applied → Shortlisted → AI interviewed → Client ✓, with "{n}% advance" pill.</li>
+    <li><b>Client decisions</b>&nbsp;— 👍 Approved / ⏸ On hold / 👎 Declined ka share + latest decision line.</li>
+  </ul>
+
+  <div class="sub-title">4.12 Recruiter notifications</div>
+  <table>
+    <thead><tr><th style="width:30%">Event</th><th>Notification</th></tr></thead>
+    <tbody>
+      <tr><td>Candidate applies</td><td>"New application · {job}"&nbsp;— "{candidate} applied with a {n}% skill match&nbsp;— worth a look." (Applicants tab par deep-link)</td></tr>
+      <tr><td>AI interview completes</td><td>"{verdict emoji} AI interview done · {candidate} · {x.x}/10"&nbsp;— verdict + report ready.</td></tr>
+      <tr><td>Client decision deta hai</td><td>"{emoji} {client} · {candidate} · {job}"&nbsp;— "…wants to move forward / on hold / declined… Note: {feedback}"</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ── CHAPTER 5 ── -->
+  <div class="chapter-header">
+    <div class="section-tag">Chapter 05</div>
+    <h2 class="section-title">Client Partner Guide&nbsp;— Portal ka Poora Flow</h2>
+    <p class="chapter-lede">Client partner wo hiring company hai jiske liye recruiter candidates dhoondh raha
+    hai. Client ko portal me sirf wahi AI reports dikhte hain jo recruiter ne unke saath share kiye hain.
+    Client ka kaam simple hai: report padho, recordings dekho, aur decision do&nbsp;— Approve, On hold, ya Decline.
+    Decision turant recruiter ko notify hota hai.</p>
+  </div>
+
+  <div class="sub-title">5.1 Access kaise milta hai</div>
+  <div class="step"><div class="step-num">1</div><div class="step-body">
+    <div class="step-title">Recruiter aapko register karta hai</div>
+    <div class="step-desc">Recruiter apne <b>Clients</b> tab me aapki company add karta hai&nbsp;— company name aur
+    <b>contact email</b>. Wahi email aapka portal credential ban jata hai.</div>
+  </div></div>
+  <div class="step"><div class="step-num">2</div><div class="step-body">
+    <div class="step-title">Aap sign in karte ho</div>
+    <div class="step-desc">Sign in dialog me <b>Client</b> role chunein, apna registered email dalein,
+    <b>"Continue as Client Partner 🤝"</b> dabayein. Naam field auto-filled hota hai ("Auto-filled from client
+    registry"). Pehli login par hi aapka portal account ban jata hai.</div>
+  </div></div>
+  <div class="step"><div class="step-num">3</div><div class="step-body">
+    <div class="step-title">Client Portal khul jata hai</div>
+    <div class="step-desc">Header me "Client Portal" link aa jata hai. Portal ka hero aapki company dikhata hai
+    (naam, industry chip, recruiter ke internal notes quote) aur 4 KPI tiles: <b>Reports shared · Avg AI score ·
+    Strong-hire rate · Awaiting your call</b>.</div>
+  </div></div>
+
+  <div class="sub-title">5.2 Reports review karna</div>
+  <div class="body-text">Sticky filter bar me: <b>search</b> (candidate, role, skill), <b>verdict dropdown</b>
+  (All / 🚀 / ✅ / 🤔 / ❌), <b>sort</b> (Newest first / Highest score / Lowest score) aur <b>"Undecided
+  only"</b> toggle. Har report card par score donut, candidate naam, verdict badge, experience + location,
+  context line (<i>"Interviewed for {job} @ {company} · MEDIUM · 10/10 questions · 2h ago"</i>) hai.
+  <b>"View report"</b> expand karne par: <b>AI Summary</b>, 4 <b>dimension bars</b> (Technical Depth,
+  Communication, Problem Solving, Domain Knowledge), <b>Strengths 👍</b> / <b>Watch-outs 👎</b>, candidate
+  snapshot (experience, expected salary, notice period, skills), aur poora <b>Interview Transcript</b>&nbsp;— har
+  question, har answer ka verbatim transcript, inline <b>video/audio players</b> aur per-question scores.
+  Upar <b>"Download recordings (ZIP)"</b> aur <b>"Print / PDF"</b> buttons hain.</div>
+
+  <div class="sub-title">5.3 Decision dena&nbsp;— "Judge candidate"</div>
+  <div class="step"><div class="step-num">1</div><div class="step-body">
+    <div class="step-title">Judge candidate dabayein</div>
+    <div class="step-desc">Undecided cards par gradient button hota hai. Dialog khulta hai:
+    "Your verdict on {candidate}&nbsp;— {job} @ {company} · AI score {x.x}/10. Your decision is shared back with
+    the SeeWe recruiter."</div>
+  </div></div>
+  <div class="step"><div class="step-num">2</div><div class="step-body">
+    <div class="step-title">Decision chunein + note likhein</div>
+    <div class="step-desc">Teen options: <b>👍 Approve</b>, <b>⏸ On hold</b>, <b>👎 Decline</b>. Optional note
+    (600 characters): <i>"e.g. Strong on system design&nbsp;— move to the final culture round."</i>
+    <b>"Submit verdict"</b> dabayein.</div>
+  </div></div>
+  <div class="step"><div class="step-num">3</div><div class="step-body">
+    <div class="step-title">Ho gaya&nbsp;— sabko pata chal jata hai</div>
+    <div class="step-desc">Toast: "Verdict sent&nbsp;— candidate approved ✅ The recruiter has been notified."
+    Recruiter ko in-app notification jata hai aur candidate ko bhi score-free update milta hai. Decision
+    <b>final aur locked</b> hai&nbsp;— change karna ho to apne SeeWe recruiter se baat karein. Card par aage se
+    decision badge + aapka note dikhta hai.</div>
+  </div></div>
+
+  <div class="grid-2">
+    <div class="gcard">
+      <div class="g-title">✅ Client ko kya dikhta hai</div>
+      <p class="g-text">Overall score + verdict, 4 dimension scores, AI summary, strengths/watch-outs, poora
+      Q&amp;A transcript (scores ke saath), recordings + ZIP, candidate ka naam/headline/location/skills/
+      experience/expected salary/notice period, job title, apne past decisions.</p>
+    </div>
+    <div class="gcard">
+      <div class="g-title">🚫 Client ko kya nahi dikhta</div>
+      <p class="g-text">Candidate ka email/phone/resume text, AI ke model answers, recruiter ke private notes,
+      ATS payloads, doosre clients ke reports, in-progress interviews&nbsp;— aur pipeline ke early stages
+      (Applied/Shortlisted) ke data.</p>
+    </div>
+  </div>
+
+  <div class="body-text"><b>Notification:</b> Jab recruiter report share karta hai, client ko notification aata
+  hai&nbsp;— "🧾 New AI report · {candidate} · {job}". Us par click karne se portal khulta hai aur usi report card
+  par scroll + highlight hota hai. Weekly digest me "Report shared" section milta hai.</div>
+
+  <!-- ── CHAPTER 6 ── -->
+  <div class="chapter-header">
+    <div class="section-tag">Chapter 06</div>
+    <h2 class="section-title">End-to-End Lifecycle&nbsp;— Ek Candidate ka Poora Safar</h2>
+    <p class="chapter-lede">Yeh walkthrough teeno roles ko ek hi timeline par laata hai. Example: Meghna,
+    React developer, TechNova ke "Senior Frontend Engineer" role ke liye apply karti hai.</p>
+  </div>
+
+  <div class="step"><div class="step-num">1</div><div class="step-body">
+    <div class="step-title">Recruiter job post karta hai</div>
+    <div class="step-desc">Ananya (TechNova) "Senior Frontend Engineer" post karti hai&nbsp;— skills, JD, salary band.
+    Job instantly live ho jaati hai aur Find Jobs me aa jaati hai.</div>
+  </div></div>
+  <div class="step"><div class="step-num">2</div><div class="step-body">
+    <div class="step-title">Candidate profile banata aur apply karta hai</div>
+    <div class="step-desc">Meghna ne pehle hi resume AI se parse karwaya tha (profile strength 90%). Wo job
+    dhundti hai (⚡ 85% match), cover note likhti hai, "Send my application ⚡" dabati hai. System match score
+    save karta hai aur Ananya ko notification deta hai.</div>
+  </div></div>
+  <div class="step"><div class="step-num">3</div><div class="step-body">
+    <div class="step-title">Recruiter shortlist karta hai</div>
+    <div class="step-desc">Ananya Applicants tab me Meghna ka card dekhti hai (🎯 85% match), "Shortlist ★"
+    dabati hai, client (Flipkart) choose karti hai. Meghna ko "⭐ Shortlisted · {job}" notification milta hai&nbsp;—
+    uske card par "▶ Resume AI Interview" button jagah leta hai.</div>
+  </div></div>
+  <div class="step"><div class="step-num">4</div><div class="step-body">
+    <div class="step-title">AI interview hota hai</div>
+    <div class="step-desc">Meghna interview room me jaati hai. 6 core questions (resume + JD se, domain-aware)
+    + 4 profile questions. Voice-only answering, Take A/B, har submit par neutral confirmation. Finish par
+    "Interview complete 🎉".</div>
+  </div></div>
+  <div class="step"><div class="step-num">5</div><div class="step-body">
+    <div class="step-title">Report generate hota hai</div>
+    <div class="step-desc">System overall score (8.4/10) nikalta hai → 🚀 Strong Hire. 4 dimension scores,
+    AI summary, strengths/watch-outs report banta hai. Meghna ke spoken preliminary answers us profile me
+    auto-sync ho gaye (Pune, 8 yrs, 45 days, 12 LPA current / 18 LPA expected). Ananya ko
+    "🚀 AI interview done · Meghna · 8.4/10" notification milti hai.</div>
+  </div></div>
+  <div class="step"><div class="step-num">6</div><div class="step-body">
+    <div class="step-title">Recruiter evidence review karta hai</div>
+    <div class="step-desc">Ananya Interview Hub me Meghna ka 360° detail kholti hai&nbsp;— saare answers, transcripts,
+    recordings, dimension bars. Sab kuch theek hai, wo "Share Report →" se report Flipkart ko bhej deti hai.</div>
+  </div></div>
+  <div class="step"><div class="step-num">7</div><div class="step-body">
+    <div class="step-title">Client decision deta hai</div>
+    <div class="step-desc">Flipkart portal me "🧾 New AI report · Meghna · Senior Frontend Engineer" aata hai.
+    Client report review karta hai (score donut 8.4, dimensions, transcript, ek recording bhi play karta hai)
+    aur "Judge candidate" → 👍 Approve + note: "Strong on checkout flows&nbsp;— schedule final culture round."</div>
+  </div></div>
+  <div class="step"><div class="step-num">8</div><div class="step-body">
+    <div class="step-title">Recruiter next process aage badhata hai</div>
+    <div class="step-desc">Ananya ko "✅ Flipkart · Meghna · Senior Frontend Engineer" notification milti hai.
+    Wo Meghna ko HIRED mark karti hai (Offer stage 🎉) aur Interview Hub se uska ATS dossier apne company
+    hiring pipeline me push kar deti hai&nbsp;— profile + interview + report + client decision sab ek payload me.
+    Meghna ko "🎉 Offer received" notification milta hai.</div>
+  </div></div>
+
+  <div class="keep">
+  <table>
+    <thead><tr><th style="width:34%">Candidate dikhawa</th><th style="width:33%">Recruiter dikhawa</th><th>Client dikhawa</th></tr></thead>
+    <tbody>
+      <tr><td>Applied (tracker dot 1)</td><td>Badge "Applied" · 🎯 match%</td><td>—</td></tr>
+      <tr><td>⭐ notification + resume button</td><td>Badge "Shortlisted" ★</td><td>—</td></tr>
+      <tr><td>Interview room (10 questions)</td><td>"AI Interview · live" spinner</td><td>—</td></tr>
+      <tr><td>"✓ Submitted" + transcript review</td><td>"AI Interviewed" + View AI Report</td><td>—</td></tr>
+      <tr><td>"Shared with Flipkart" badge</td><td>Badge "Shared" · Share Report →</td><td>🧾 New report card</td></tr>
+      <tr><td>Client Review dot</td><td>"👍 Client approved ✓" chip</td><td>"👍 Approved by your team"</td></tr>
+      <tr><td>🎉 Offer received</td><td>"Hired" badge</td><td>Decision locked, record me</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <!-- ── CHAPTER 7 ── -->
+  <div class="chapter-header">
+    <div class="section-tag">Chapter 07</div>
+    <h2 class="section-title">Reference, Privacy &amp; FAQ</h2>
+    <p class="chapter-lede">Quick reference&nbsp;— statuses, verdicts, notifications, privacy rules, aur aksar
+    poochhe jaane wale sawaal.</p>
+  </div>
+
+  <div class="sub-title">7.1 Status glossary</div>
+  <table>
+    <thead><tr><th style="width:34%">Status</th><th>Matlab (kise dikhta hai)</th></tr></thead>
+    <tbody>
+      <tr><td>APPLIED&nbsp;— "Applied"</td><td>Candidate ne apply kiya, recruiter review pending (dono ko dikhta hai)</td></tr>
+      <tr><td>SHORTLISTED&nbsp;— "Shortlisted"</td><td>Recruiter ne shortlist kiya; candidate interview start kar sakta hai</td></tr>
+      <tr><td>INTERVIEW_SCHEDULED&nbsp;— "AI Interview · live"</td><td>Interview room khul chuka hai, chal raha hai</td></tr>
+      <tr><td>INTERVIEWED&nbsp;— "AI Interviewed"</td><td>Interview complete + AI report ready (sirf recruiter/client evaluation)</td></tr>
+      <tr><td>SHARED_WITH_CLIENT&nbsp;— "Shared"</td><td>Report client portal me pahunch chuka hai</td></tr>
+      <tr><td>REJECTED&nbsp;— "Rejected"</td><td>Pipeline se bahar (candidate ko gentle notification, score nahi)</td></tr>
+      <tr><td>HIRED&nbsp;— "Hired"</td><td>Offer stage&nbsp;— candidate ko 🎉 celebration card</td></tr>
+    </tbody>
+  </table>
+
+  <div class="sub-title">7.2 Privacy &amp; data rules</div>
+  <ul class="list">
+    <li><b>Candidate score-blind hai</b>&nbsp;— interview API responses, dashboard, notifications, transcript view: har jagah se score/verdict/feedback server par strip hota hai. Ye defense-in-depth hai, sirf UI hide nahi.</li>
+    <li><b>Profile visibility toggle</b>&nbsp;— OFF karne par candidate talent search me nahi aata, lekin uski existing applications active rehti hain.</li>
+    <li><b>Recording retention</b>&nbsp;— default 45 days; recruiter per-client 7–365 days set kar sakta hai. Retention cross hote hi "Clean storage" sweep me recordings delete ho jaati hain (transcript text stay karta hai).</li>
+    <li><b>Recruiter notes private</b> hain; client ko candidate ke email/phone/resume ka raw text kabhi nahi dikhta.</li>
+    <li><b>Ek hi decision per report</b>&nbsp;— client verdict immutable hai; dobara decision dene ki koshish par clear error message.</li>
+  </ul>
+
+  <div class="sub-title">7.3 FAQ</div>
+  <div class="faq">
+    <div class="q">Q: Password kya hai?</div>
+    <div class="a">Koi password nahi hai&nbsp;— demo-lite sign in hai. Sirf email (aur role) se entry milti hai. Demo chips se ek-click login hota hai.</div>
+  </div>
+  <div class="faq">
+    <div class="q">Q: Candidate ko AI score kyun nahi dikhta?</div>
+    <div class="a">By design. Score/verdict hiring team ke evidence ke liye hai. Candidate ko sirf process status aur apne answers dikhte hain&nbsp;— isse anxiety kam hoti hai aur evaluation unbiased rehta hai.</div>
+  </div>
+  <div class="faq">
+    <div class="q">Q: Interview beech me chhoda ho jaye to?</div>
+    <div class="a">Koi problem nahi&nbsp;— interview idempotent hai. Dobara "Resume AI Interview" dabane par wahi se resume hota hai; answered questions safe rehte hain.</div>
+  </div>
+  <div class="faq">
+    <div class="q">Q: Camera nahi hai to interview de sakte hain?</div>
+    <div class="a">Haan. Camera off hone par bhi voice answers record hote hain&nbsp;— room me "Camera off&nbsp;— your voice answers still count" placeholder dikhta hai. Video answers ka fayda ye hai ki hiring team playback me aapko dekh sakta hai.</div>
+  </div>
+  <div class="faq">
+    <div class="q">Q: ATS webhook fail ho jaye to?</div>
+    <div class="a">Push attempt honestly log hota hai (✗ + message). Aap tab bhi "Copy JSON" ya "Download" se dossier manual import kar sakte hain, ya per-position CSV use kar sakte hain.</div>
+  </div>
+  <div class="faq">
+    <div class="q">Q: Client decision galat ho gaya, change kaise karein?</div>
+    <div class="a">Decision locked hai. SeeWe recruiter se contact karein&nbsp;— wo platform team ke through revisit kar sakta hai.</div>
+  </div>
+  <div class="faq">
+    <div class="q">Q: Email digest real me jaata hai?</div>
+    <div class="a">Demo me digest preview simulated hai&nbsp;— "Send digest" par toast aata hai lekin real email nahi jata. Real email delivery documented next-step hai.</div>
+  </div>
+  <div class="faq">
+    <div class="q">Q: Non-IT jobs ke liye bhi AI interview theek questions puchhega?</div>
+    <div class="a">Haan&nbsp;— question engine 13 domains detect karta hai (Sales, Finance, HR, Operations, Healthcare, Legal, Hospitality aadi). Non-technical domains me coding questions explicitly blocked hain, aur AI fail hone par domain-neutral fallback questions chalte hain.</div>
+  </div>
+  <div class="faq">
+    <div class="q">Q: Recordings kitne din rehti hain?</div>
+    <div class="a">Default 45 days. Recruiter apne Clients tab me per-client 7–365 days tak retention set kar sakta hai. Candidate recordings sirf hiring surfaces par play/download hoti hain.</div>
+  </div>
+
+  <div class="warnbox">
+    <p><b>Demo limitations (honest list):</b> passwordless auth (production me real auth chahiye), digest email
+    simulated hai, offline sandbox me external ATS webhook push FAILED log hota hai (manual JSON hamesha kaam
+    karta hai), aur ek client org ke sab users same contact email share karte hain. Ye documented next-round
+    items hain, bugs nahi.</p>
+  </div>
+
+  <div class="sub-title">7.4 Five-minute demo script&nbsp;— poora flow apne aankhon se dekhein</div>
+  <div class="body-text">Neeche ka script follow karke aap teeno roles ka poora lifecycle 5 minute me experience
+  kar sakte hain. Har step ke baad Sign out karke agle role me login karein (demo chips se ek click me ho jata
+  hai).</div>
+  <div class="step"><div class="step-num">1</div><div class="step-body">
+    <div class="step-title">Recruiter ban jaiye&nbsp;— ananya@technova.com</div>
+    <div class="step-desc">Hiring Hub me Applicants tab kholein, kisi job ka chip lagayein aur ek application
+    par nazar daalein&nbsp;— match %, timeline chips, private notes. Phir <b>Interview Hub</b> tab me kisi completed
+    candidate par <b>"Open →"</b> dabayein: 360° detail me question plan, transcripts, recordings, scores aur
+    report sab ek jagah milega.</div>
+  </div></div>
+  <div class="step"><div class="step-num">2</div><div class="step-body">
+    <div class="step-title">Candidate ban jaiye&nbsp;— arjun.mehta@gmail.com</div>
+    <div class="step-desc">My Journey me kisi application par <b>"▶ Resume AI Interview"</b> dabayein. Camera
+    allow karein, ek-do sawal bolkar answer karein (Take A/B bhi try karein), phir Exit. Notice kijiye&nbsp;— na
+    typing hai, na koi score dikhta hai; sirf "Answer received" confirmations aate hain.</div>
+  </div></div>
+  <div class="step"><div class="step-num">3</div><div class="step-body">
+    <div class="step-title">Report share kijiye</div>
+    <div class="step-desc">Recruiter me wapas jaakar Applicants tab me kisi INTERVIEWED candidate par
+    <b>"Share Report →"</b> dabayein aur Flipkart chunein. Client ke portal users ko notification chala jayega.</div>
+  </div></div>
+  <div class="step"><div class="step-num">4</div><div class="step-body">
+    <div class="step-title">Client ban jaiye&nbsp;— partnerships@flipkart-demo.com</div>
+    <div class="step-desc">Client Portal me shared report par <b>"View report"</b> kholein&nbsp;— score donut,
+    dimension bars, transcript aur ek recording play karein. Phir <b>"Judge candidate"</b> → 👍 Approve + chhota
+    note → <b>"Submit verdict"</b>.</div>
+  </div></div>
+  <div class="step"><div class="step-num">5</div><div class="step-body">
+    <div class="step-title">Decision ka asar dekhiye</div>
+    <div class="step-desc">Recruiter me notification dekhein ("✅ Flipkart · {candidate} · {job}") aur Applicants
+    timeline me "<b>👍 Client approved ✓</b>" chip. Analytics strip ke "Client decisions" chart me bhi ye call
+    plot ho gayi hogi.</div>
+  </div></div>
+  <div class="step"><div class="step-num">6</div><div class="step-body">
+    <div class="step-title">ATS handoff&nbsp;— last mile</div>
+    <div class="step-desc">Interview Hub me usi candidate ka detail kholein → <b>Send to ATS</b> panel →
+    integration register karein (koi bhi https endpoint) → <b>"Copy JSON"</b> se poora dossier clipboard le lein
+    ya <b>"Download"</b> se JSON file save karein. Bas&nbsp;— candidate ka next process ready hai.</div>
+  </div></div>
+
+</div><!-- /main-content -->
+
+<!-- ═══════════════ ENDING ═══════════════ -->
+<div class="ending">
+  <div class="deco-ring ring-a"></div>
+  <div class="deco-ring ring-b"></div>
+  <div class="end-title">Hire with evidence.<br>Get hired with confidence.</div>
+  <p class="end-text">SeeWe AI interviews every shortlisted candidate on video&nbsp;— voice-first, structured,
+  and transparent to the hiring team. Recruiters see the full dossier, clients make the final call,
+  and candidates always know exactly where they stand.</p>
+  <div class="end-chips">
+    <span class="cover-chip">Job Seeker</span>
+    <span class="cover-chip">Recruiter</span>
+    <span class="cover-chip">Client Partner</span>
+  </div>
+  <div class="end-foot">SeeWe AI · Complete User Manual · Edition 2025</div>
+</div>
+
+</body>
+</html>

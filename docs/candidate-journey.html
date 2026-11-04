@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SeeWe AI — Candidate Journey: Har Feature Ka Breakdown</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Segoe UI', system-ui, -apple-system, sans-serif; background:#f1f5f9; color:#0f172a; padding:36px; width:1420px; }
+  .hdr { background:linear-gradient(135deg,#052e22,#064e3b 55%,#065f46); color:#fff; border-radius:18px; padding:28px 32px; margin-bottom:22px; display:flex; justify-content:space-between; align-items:center; }
+  .hdr h1 { font-size:30px; font-weight:800; letter-spacing:-.5px; }
+  .hdr p { color:#a7f3d0; margin-top:6px; font-size:14.5px; max-width:760px; }
+  .chip { background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.3); border-radius:999px; padding:8px 18px; font-size:13px; font-weight:700; white-space:nowrap; }
+  .legend { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:22px; }
+  .lg { border-radius:10px; padding:8px 14px; font-size:12.5px; font-weight:600; }
+  .lg-see { background:#ecfdf5; border:1px solid #6ee7b7; color:#065f46; }
+  .lg-how { background:#fffbeb; border:1px solid #fcd34d; color:#92400e; }
+  .lg-lock { background:#fef2f2; border:1px solid #fca5a5; color:#991b1b; }
+  .stage { background:#fff; border-radius:16px; padding:24px 26px; margin-bottom:20px; border-left:6px solid #059669; box-shadow:0 2px 10px rgba(15,23,42,.07); }
+  .stage-h { display:flex; align-items:center; gap:14px; margin-bottom:6px; }
+  .stage-num { width:40px; height:40px; border-radius:12px; background:#059669; color:#fff; font-weight:800; font-size:19px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .stage-h h2 { font-size:20px; font-weight:800; }
+  .stage-h .sub { font-size:13px; color:#64748b; font-weight:500; }
+  .cols { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:14px; }
+  .box { border-radius:12px; padding:14px 16px; font-size:13.5px; line-height:1.55; }
+  .box-see { background:#f0fdf4; border:1px solid #bbf7d0; }
+  .box-how { background:#fffbeb; border:1px solid #fde68a; }
+  .box-t { font-weight:800; font-size:12px; text-transform:uppercase; letter-spacing:.6px; margin-bottom:8px; }
+  .box-see .box-t { color:#047857; } .box-how .box-t { color:#b45309; }
+  .box ul { padding-left:16px; } .box li { margin-bottom:5px; }
+  .cols3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-top:14px; }
+  .mini { background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:13px 15px; font-size:12.8px; line-height:1.5; }
+  .mini b { display:block; font-size:13.5px; margin-bottom:5px; color:#0f172a; }
+  .flow { display:flex; align-items:center; flex-wrap:wrap; gap:6px; margin-top:14px; background:#f8fafc; border:1px dashed #94a3b8; border-radius:12px; padding:12px 14px; font-size:12.5px; font-weight:600; }
+  .fstep { background:#0f172a; color:#fff; border-radius:8px; padding:6px 11px; white-space:nowrap; }
+  .fstep.alt { background:#059669; }
+  .farr { color:#059669; font-weight:800; font-size:15px; }
+  table { width:100%; border-collapse:collapse; margin-top:12px; font-size:12.6px; }
+  th { background:#0f172a; color:#fff; text-align:left; padding:9px 12px; font-size:11.5px; text-transform:uppercase; letter-spacing:.5px; }
+  td { border-bottom:1px solid #e2e8f0; padding:9px 12px; vertical-align:top; line-height:1.5; }
+  tr:nth-child(even) td { background:#f8fafc; }
+  .pill { display:inline-block; border-radius:999px; padding:2px 10px; font-size:11px; font-weight:700; }
+  .p-g { background:#ecfdf5; color:#047857; border:1px solid #6ee7b7; }
+  .p-a { background:#fffbeb; color:#b45309; border:1px solid #fcd34d; }
+  .p-r { background:#fef2f2; color:#b91c1c; border:1px solid #fca5a5; }
+  .p-v { background:#f5f3ff; color:#6d28d9; border:1px solid #c4b5fd; }
+  /* Interview room wireframe */
+  .room { background:#0f172a; border-radius:14px; padding:14px; margin-top:14px; }
+  .room-top { display:flex; justify-content:space-between; align-items:center; background:#1e293b; border-radius:9px; padding:8px 14px; color:#e2e8f0; font-size:12.5px; font-weight:600; margin-bottom:10px; }
+  .timer { background:#f59e0b; color:#0f172a; border-radius:7px; padding:3px 10px; font-weight:800; font-variant-numeric:tabular-nums; }
+  .room-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .pane { border-radius:10px; padding:12px; min-height:150px; }
+  .pane-ai { background:linear-gradient(160deg,#064e3b,#065f46); color:#d1fae5; }
+  .pane-me { background:#1e293b; border:1.5px dashed #475569; color:#94a3b8; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .pane-t { font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.7px; opacity:.85; margin-bottom:8px; }
+  .avatar { width:52px; height:52px; border-radius:50%; background:#10b981; display:flex; align-items:center; justify-content:center; font-size:24px; margin:4px auto 8px; }
+  .wave { display:flex; gap:3px; align-items:center; justify-content:center; height:22px; margin:8px 0; }
+  .wave i { width:4px; border-radius:2px; background:#34d399; display:block; }
+  .qcard { background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.2); border-radius:9px; padding:9px 12px; font-size:12.5px; line-height:1.45; margin-top:6px; }
+  .camicon { font-size:30px; margin-bottom:6px; }
+  .room-btns { display:flex; gap:8px; margin-top:10px; align-items:center; }
+  .rbtn { border-radius:8px; padding:7px 13px; font-size:12px; font-weight:700; }
+  .b-submit { background:#059669; color:#fff; }
+  .b-skip { background:#334155; color:#94a3b8; }
+  .b-lock { background:#1e293b; color:#64748b; border:1px solid #334155; }
+  .b-lock::before { content:'🔒 '; }
+  .privacy { background:#fef2f2; border:2px solid #dc2626; border-radius:16px; padding:22px 26px; margin-bottom:20px; }
+  .privacy h2 { color:#991b1b; font-size:19px; font-weight:800; margin-bottom:10px; display:flex; align-items:center; gap:10px; }
+  .privacy ul { padding-left:20px; font-size:13.5px; line-height:1.7; color:#7f1d1d; }
+  .grid7 { display:grid; grid-template-columns:repeat(7,1fr); gap:8px; margin-top:14px; }
+  .tab7 { background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px 8px; text-align:center; font-size:11.8px; font-weight:700; line-height:1.35; }
+  .tab7 span { display:block; font-size:19px; margin-bottom:4px; }
+  .note { background:#eff6ff; border:1px solid #bfdbfe; border-radius:10px; padding:10px 14px; font-size:12.8px; color:#1e40af; margin-top:12px; line-height:1.55; }
+  .foot { text-align:center; color:#64748b; font-size:12px; padding:8px 0 4px; }
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div>
+    <h1>👤 Candidate Journey — Har Feature Ka Poora Breakdown</h1>
+    <p>SeeWe AI portal par candidate ko signup se lekar offer tak kya-kya karna hota hai, screen par kya dikhta hai, aur har feature andar se kaise kaam karta hai.</p>
+  </div>
+  <div class="chip">ROLE: CANDIDATE VIEW ONLY</div>
+</div>
+
+<div class="legend">
+  <div class="lg lg-see">🟢 KYA DIKHTA HAI — candidate ki screen par</div>
+  <div class="lg lg-how">🟡 KAISE HOTA HAI — andar ki working</div>
+  <div class="lg lg-lock">🔒 KABHI NAHI DIKHTA — recruiter-side AI data</div>
+</div>
+
+<!-- STAGE 1 -->
+<div class="stage">
+  <div class="stage-h"><div class="stage-num">1</div><div><h2>Account Banao — Sign Up / Login</h2><div class="sub">Entry point: header ka "Sign Up" button</div></div></div>
+  <div class="cols">
+    <div class="box box-see"><div class="box-t">Kya dikhta hai</div><ul>
+      <li>Sign-up form: <b>Full name, Email, Password</b> (role automatic = CANDIDATE)</li>
+      <li>Login screen purane users ke liye — email + password</li>
+      <li>Signup ke turant baad seedha <b>Candidate Dashboard</b> khulta hai</li>
+      <li>Demo account bhi available: Arjun Mehta (arjun.mehta@gmail.com)</li>
+    </ul></div>
+    <div class="box box-how"><div class="box-t">Kaise hota hai</div><ul>
+      <li>Form submit → <code>POST /api/auth/login</code> → user DB me <b>CANDIDATE role</b> ke saath create</li>
+      <li>Session + profile Zustand store me load hota hai (refresh par bhi stay)</li>
+      <li>Email invalid / duplicate → inline error message</li>
+      <li>Notification bell + email system isi account se jud jata hai</li>
+    </ul></div>
+  </div>
+  <div class="flow"><span class="fstep">Sign Up form</span><span class="farr">→</span><span class="fstep">Account create (CANDIDATE)</span><span class="farr">→</span><span class="fstep alt">Dashboard open</span></div>
+</div>
+
+<!-- STAGE 2 -->
+<div class="stage">
+  <div class="stage-h"><div class="stage-num">2</div><div><h2>Profile Complete Karo — Profile Tab</h2><div class="sub">7 dashboard tabs me se "Profile" — jitna strong profile, utna achha AI matching</div></div></div>
+  <div class="grid7">
+    <div class="tab7"><span>💼</span>Applications</div>
+    <div class="tab7"><span>🔖</span>Saved</div>
+    <div class="tab7"><span>🛡️</span>Skills</div>
+    <div class="tab7"><span>🏋️</span>Practice</div>
+    <div class="tab7"><span>👥</span>Guilds</div>
+    <div class="tab7"><span>🔔</span>Alerts</div>
+    <div class="tab7"><span>👤</span>Profile</div>
+  </div>
+  <div class="cols">
+    <div class="box box-see"><div class="box-t">Kya dikhta hai</div><ul>
+      <li><b>Profile Strength meter</b> — % complete + nudges ("Add skills to reach 100%")</li>
+      <li>Form: name, phone, headline, <b>skills chips</b>, experience, education, preferred locations, salary expectation, notice period (Immediate / 15d / 1m / 2m / 3m)</li>
+      <li><b>CV Upload card</b> — PDF/DOC attach</li>
+      <li><b>AI Resume Parser</b> — CV upload karte hi AI fields auto-fill karta hai</li>
+      <li><b>Video Resume card</b> — 60–90 sec camera se record/upload</li>
+    </ul></div>
+    <div class="box box-how"><div class="box-t">Kaise hota hai</div><ul>
+      <li>Har edit → Save → dirty-state check, validation toasts, turant persist</li>
+      <li>CV upload → <code>/api/resume/parse</code> → AI skills/experience nikaal kar profile me daal deta hai (1-click accept)</li>
+      <li>Video resume → <code>/api/candidates/video-resume</code> par store hota hai, recruiter profile me dikhta hai</li>
+      <li>Strength % live update hota hai — deep-link "Complete now" button</li>
+    </ul></div>
+  </div>
+</div>
+
+<!-- STAGE 3 -->
+<div class="stage">
+  <div class="stage-h"><div class="stage-num">3</div><div><h2>Jobs Dhoondo Aur Apply Karo — Home / Jobs</h2><div class="sub">Browse, search, save, recommended, easy-apply</div></div></div>
+  <div class="cols">
+    <div class="box box-see"><div class="box-t">Kya dikhta hai</div><ul>
+      <li><b>Jobs grid</b> — card me: title, company, salary range, location chip (REMOTE / HYBRID / ONSITE), posted time, ACTIVE badge</li>
+      <li><b>Recommended Jobs</b> — AI match % (profile skills vs JD)</li>
+      <li>Search bar + filters (department, location type, salary)</li>
+      <li>Job Detail popup: full description, requirements, <b>Apply Now</b>, 🔖 Save</li>
+      <li>Applied job par <b>"✓ Applied"</b> badge — duplicate apply block</li>
+    </ul></div>
+    <div class="box box-how"><div class="box-t">Kaise hota hai</div><ul>
+      <li><code>GET /api/jobs</code> (ACTIVE jobs) + <code>/api/jobs/recommendations</code> AI scoring</li>
+      <li><b>Easy Apply dialog</b>: profile confirm + cover note + CV attach → <code>POST /api/applications</code> → status <b>NEW</b></li>
+      <li>Save → <code>/api/saved-jobs</code> → Saved tab me list</li>
+      <li>Apply ke baad recruiter ko response dashboard me row dikhti hai; candidate ko notification</li>
+      <li>🔔 Job Alerts subscribe — naya matching job → bell + email alert</li>
+    </ul></div>
+  </div>
+  <div class="flow"><span class="fstep">Browse / Search</span><span class="farr">→</span><span class="fstep">Job Detail</span><span class="farr">→</span><span class="fstep">Easy Apply</span><span class="farr">→</span><span class="fstep alt">Application NEW + ✓ Applied badge</span></div>
+</div>
+
+<!-- STAGE 4 -->
+<div class="stage">
+  <div class="stage-h"><div class="stage-num">4</div><div><h2>Application Track Karo — Applications Tab</h2><div class="sub">Har application ki live 6-step timeline</div></div></div>
+  <div class="cols">
+    <div class="box box-see"><div class="box-t">Kya dikhta hai</div><ul>
+      <li><b>14-Day Response Promise banner</b> — SLA cross hone par honest reminder notice</li>
+      <li>Application card: job title + company + status pill + applied date</li>
+      <li><b>Timeline: Applied → Viewed → Shortlisted → Interview → Offer → Hired</b> — completed nodes ✓, current node pulsing</li>
+      <li>CV attached indicator, recruiter "Viewed" signal</li>
+      <li>Reject hone par honest red state</li>
+    </ul></div>
+    <div class="box box-how"><div class="box-t">Kaise hota hai</div><ul>
+      <li><code>GET /api/applications?candidateId</code> → har card ka status DB se</li>
+      <li>Recruiter job dekhe → "Viewed" ✓ auto mark; shortlist/status change → timeline aage</li>
+      <li>Status change → <b>Notification + Email</b> candidate ko</li>
+      <li>SLA sweep 14 din se purani application par reminder trigger karta hai</li>
+    </ul></div>
+  </div>
+</div>
+
+<!-- STAGE 5 -->
+<div class="stage">
+  <div class="stage-h"><div class="stage-num">5</div><div><h2>Skills Verify Karo — Skills Tab</h2><div class="sub">Assessment + ATS Simulator + Role-Fit Deep Dive</div></div></div>
+  <div class="cols3">
+    <div class="mini"><b>🛡️ Assessment Center</b>AI skill quiz (role-wise MCQ) do → <b>verified skill badge</b> milta hai jo recruiter ko dikhta hai. Score sirf verification ke liye — verdict candidate ke control me share hota hai.</div>
+    <div class="mini"><b>📊 ATS Simulator</b>Resume/JD paste karo → ATS-friendliness score, <b>missing keywords chips</b>, format issues + fix suggestions. Ye candidate ka PRIVATE preparation tool hai.</div>
+    <div class="mini"><b>🎯 Role-Fit Deep Dive</b>AI kisi bhi role ke liye fit % nikalta hai — strengths, gaps, learning path recommend karta hai. Candidate apni prep plan bana sakta hai.</div>
+  </div>
+</div>
+
+<!-- STAGE 6 -->
+<div class="stage" style="border-left-color:#d97706;">
+  <div class="stage-h"><div class="stage-num" style="background:#d97706;">6</div><div><h2>🎤 Interview Invite → AI Interview Room</h2><div class="sub">Shortlist hone par recruiter "Send AI Invite" bhejta hai — email + notification aata hai</div></div></div>
+  <div class="cols">
+    <div class="box box-see"><div class="box-t">Kya dikhta hai</div><ul>
+      <li>Dashboard par pulsing CTA: <b>"Take AI Interview 🎤"</b> — subtitle: "Invite received — answer voice & typed questions set by the hiring team"</li>
+      <li>Welcome screen: "How this interview works — 🎤 3 spoken + ⌨️ 6 typed" jaisa summary</li>
+      <li><b>Left card:</b> AI Interviewer avatar + <b>soundwave animation</b> + question text card (format chip ke saath)</li>
+      <li><b>Top bar:</b> job name + question counter + <b>⏱️ countdown timer</b> (recruiter-set, amber pulse last 30s me)</li>
+      <li>Exit karke aao to <b>"Resume AI Interview"</b> banner wait karta hai</li>
+    </ul></div>
+    <div class="box box-how"><div class="box-t">Kaise hota hai</div><ul>
+      <li>Recruiter invite → <code>/api/interview/invite</code> → unique interview PENDING + email (INTERVIEW_INVITE) + notification</li>
+      <li>Candidate open kare → <code>/api/interview/start</code> → PENDING → IN_PROGRESS (sirf candidate hi trigger kar sakta hai)</li>
+      <li><b>AI bolta hai (TTS)</b>: male voice "jam" @ speed 0.85 — clear, slow Indian accent + soundwave animate</li>
+      <li>Answer <code>/api/interview/answer</code> par save; ASR voice ko transcript banata hai</li>
+    </ul></div>
+  </div>
+
+  <div class="room">
+    <div class="room-top"><span>🧑‍💼 Senior React Developer — TechNova</span><span>Q2 of 7</span><span class="timer">⏱️ 01:37</span></div>
+    <div class="room-grid">
+      <div class="pane pane-ai">
+        <div class="pane-t">AI Interviewer</div>
+        <div class="avatar">🤖</div>
+        <div class="wave"><i style="height:8px"></i><i style="height:16px"></i><i style="height:22px"></i><i style="height:12px"></i><i style="height:19px"></i><i style="height:7px"></i><i style="height:14px"></i><i style="height:21px"></i><i style="height:10px"></i><i style="height:17px"></i><i style="height:6px"></i></div>
+        <div class="qcard">🎤 <b style="color:#6ee7b7">VOICE</b> · "Walk me through a challenging React performance issue you debugged recently."</div>
+      </div>
+      <div class="pane pane-me">
+        <div class="pane-t" style="align-self:flex-start">Your Camera</div>
+        <div class="camicon">📹</div>
+        <div>Candidate ki live HD camera feed<br>(recording indicator ke saath)</div>
+      </div>
+    </div>
+    <div class="room-btns">
+      <span class="rbtn b-lock">Typing locked — ye VOICE question hai</span>
+      <span style="flex:1"></span>
+      <span class="rbtn b-skip">⏭️ Skip (sirf agar allowed ho)</span>
+      <span class="rbtn b-submit">📤 SUBMIT ANSWER</span>
+    </div>
+  </div>
+
+  <div class="cols" style="margin-top:14px;">
+    <div class="box box-see"><div class="box-t">Per-question controls — kya behave kaise</div><ul>
+      <li><b>🎤 VOICE question</b> → camera+mic record UI, take A/B strip, ASR preview read-only; <b>typing LOCKED</b> (🔒 greyed textarea)</li>
+      <li><b>⌨️ TEXT question</b> → textarea <b>UNLOCK</b>, mic UI hidden — sirf type</li>
+      <li><b>⏱️ Timer</b> recruiter ne set kiya (No limit / 1 / 1.5 / 2 / 3 / 5 / 10 min) → <b>00:00 par AUTO-SUBMIT</b> → next question</li>
+      <li>⏭️ Skip sirf allowed questions par; Submit dabao ya time khatam — dono me next question</li>
+    </ul></div>
+    <div class="box box-how"><div class="box-t">Complete hone ke baad</div><ul>
+      <li>Last answer ke baad <b>"Interview submitted ✓ — Under review"</b> state</li>
+      <li>Interview COMPLETE → recruiter side report generate hota hai (wo candidate ko <b>kabhi nahi dikhta</b>)</li>
+      <li>Application timeline "Interview" node ✓ ho jata hai</li>
+      <li>Galti se band kiya? IN_PROGRESS rehta hai — "Resume AI Interview" se wahi se continue</li>
+    </ul></div>
+  </div>
+</div>
+
+<!-- STAGE 7 -->
+<div class="stage">
+  <div class="stage-h"><div class="stage-num">7</div><div><h2>Practice Tab — Private AI Mock Interview</h2><div class="sub">Jab chahe, jitni baar — koi invite nahi chahiye</div></div></div>
+  <div class="cols">
+    <div class="box box-see"><div class="box-t">Kya dikhta hai</div><ul>
+      <li>Role/topic choose karo → AI interviewer same room experience (voice + text)</li>
+      <li>Har answer ke baad <b>personal feedback</b> — improve karne ke tips</li>
+      <li>"Private practice" label — clear indication ki ye sirf candidate ka hai</li>
+    </ul></div>
+    <div class="box box-how"><div class="box-t">Kaise hota hai</div><ul>
+      <li><code>/api/ai/mock-interview</code> question generate karta hai, <code>/submit</code> feedback deta hai</li>
+      <li>🔒 <b>Mock practice data KABHI recruiter/client ko expose nahi hota</b> — API layer par candidate-only</li>
+      <li>Real interview se bilkul alag — confidence build karne ka safe space</li>
+    </ul></div>
+  </div>
+</div>
+
+<!-- STAGE 8 -->
+<div class="stage">
+  <div class="stage-h"><div class="stage-num">8</div><div><h2>Community & Extra Tools</h2><div class="sub">Guilds · Alerts · Salary Insights · Notifications</div></div></div>
+  <div class="cols3">
+    <div class="mini"><b>👥 Guilds Hub</b>Referral communities join karo — posts, replies, insider referrals. Candidate apna profile guild me showcase kar sakta hai.</div>
+    <div class="mini"><b>🔔 Alerts + Chat Feed</b>Job alerts chat-style feed me dikhte hain — naya matching job, status changes, interview reminders sab ek jagah.</div>
+    <div class="mini"><b>💰 Salary Insights</b>Role-wise salary benchmarks dekho — negotiation prep ke liye. Plus notification bell + email digest settings.</div>
+  </div>
+</div>
+
+<!-- PRIVACY -->
+<div class="privacy">
+  <h2>🔒 Privacy Rules — Candidate Ko Ye KABHI Nahi Dikhta</h2>
+  <ul>
+    <li>❌ AI evaluation score (overall ya breakdown — technical/communication/etc.)</li>
+    <li>❌ Recruiter ka shortlist verdict ya screening dossier</li>
+    <li>❌ Proctoring flags, leaderboard position, recruiter internal notes</li>
+    <li>❌ Client-side feedback ya shared-with-client reports ka content</li>
+    <li>✅ Candidate ko sirf <b>status timeline</b> (Applied → Viewed → Shortlisted → Interview → Offer → Hired) + notifications dikhte hain</li>
+    <li>🛡️ Ye sab <b>API layer par enforce</b> hai — candidate role ke requests ko ye data return hi nahi hota, sirf UI hide nahi kiya jata</li>
+  </ul>
+</div>
+
+<!-- QUICK REFERENCE -->
+<div class="stage">
+  <div class="stage-h"><div class="stage-num">📋</div><div><h2>Quick Reference — Feature Index</h2><div class="sub">Ek nazar me sab candidate features</div></div></div>
+  <table>
+    <tr><th style="width:190px;">Feature</th><th>Kya dikhta hai (screen par)</th><th>Kaise hota hai (andar)</th><th style="width:150px;">Type</th></tr>
+    <tr><td><b>Sign Up / Login</b></td><td>Name+email+password form → dashboard</td><td>CANDIDATE role user create, session store</td><td><span class="pill p-g">Core</span></td></tr>
+    <tr><td><b>Profile + Strength</b></td><td>Editable form, % meter, nudges</td><td>Save → persist; strength recompute</td><td><span class="pill p-g">Core</span></td></tr>
+    <tr><td><b>CV Upload + AI Parse</b></td><td>Upload card → fields auto-fill suggestion</td><td>/api/resume/parse AI extraction</td><td><span class="pill p-g">Core</span></td></tr>
+    <tr><td><b>Video Resume</b></td><td>Record/upload 60–90s video</td><td>/api/candidates/video-resume store</td><td><span class="pill p-g">Core</span></td></tr>
+    <tr><td><b>Job Browse + Recommend</b></td><td>Cards, filters, AI match %</td><td>/api/jobs + recommendations scoring</td><td><span class="pill p-g">Core</span></td></tr>
+    <tr><td><b>Easy Apply</b></td><td>Dialog: cover note + CV → ✓ Applied badge</td><td>POST /api/applications (status NEW)</td><td><span class="pill p-g">Core</span></td></tr>
+    <tr><td><b>Application Timeline</b></td><td>6-node tracker + SLA banner</td><td>Status events + notifications</td><td><span class="pill p-g">Core</span></td></tr>
+    <tr><td><b>AI Interview (invited)</b></td><td>AI avatar + TTS voice, camera, timer, voice/text per question, auto-submit</td><td>invite → start → answer APIs; TTS jam@0.85</td><td><span class="pill p-a">AI</span></td></tr>
+    <tr><td><b>Mock Interview (private)</b></td><td>Practice room + instant personal feedback</td><td>/api/ai/mock-interview — candidate-only</td><td><span class="pill p-a">AI</span></td></tr>
+    <tr><td><b>Assessment Center</b></td><td>Skill quiz → verified badges</td><td>/api/assessments + submit</td><td><span class="pill p-v">Skills</span></td></tr>
+    <tr><td><b>ATS Simulator</b></td><td>ATS score + missing keywords</td><td>/api/ai/ats-check</td><td><span class="pill p-a">AI</span></td></tr>
+    <tr><td><b>Role-Fit Deep Dive</b></td><td>Fit %, strengths, gaps, learning path</td><td>/api/ai/role-fit-deepdive</td><td><span class="pill p-a">AI</span></td></tr>
+    <tr><td><b>Saved Jobs</b></td><td>🔖 bookmarked list</td><td>/api/saved-jobs</td><td><span class="pill p-g">Core</span></td></tr>
+    <tr><td><b>Guilds</b></td><td>Referral communities, posts, replies</td><td>/api/guilds APIs</td><td><span class="pill p-v">Social</span></td></tr>
+    <tr><td><b>Alerts + Feed</b></td><td>Chat-style alert feed, bell</td><td>/api/job-alerts + /api/alerts/feed</td><td><span class="pill p-g">Core</span></td></tr>
+    <tr><td><b>Salary Insights</b></td><td>Role-wise salary benchmark</td><td>/api/salary-insights</td><td><span class="pill p-v">Info</span></td></tr>
+  </table>
+  <div class="note">💡 <b>Journey ka nichod:</b> Sign up → Profile strong karo (CV + video) → Jobs browse/apply karo → Timeline track karo → Shortlist hone par AI Interview do (voice ya text, timer ke saath) → Offer tak status updates. Poore time AI scores aur recruiter notes candidate se 100% hidden rehte hain.</div>
+</div>
+
+<div class="foot">SeeWe AI — Candidate Journey &amp; Feature Breakdown · Generated from live app implementation</div>
+
+</body>
+</html>

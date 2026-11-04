@@ -1,0 +1,1489 @@
+# MASTER BUILD SPECIFICATION
+# COMPLETE JOB PORTAL + RECRUITMENT ATS + AI LIVE AUDIO/VIDEO INTERVIEW PLATFORM
+
+## 1. YOUR ROLE AND RESPONSIBILITY
+
+Act as a senior product architect, product manager, UI/UX designer, full-stack engineer, database architect, AI engineer, real-time communications engineer, security engineer, DevOps engineer and QA lead.
+
+Your task is to design, implement, test and deploy a complete, production-oriented job portal inspired by the functional capabilities of established job platforms such as Naukri.com.
+
+The platform must be an original product. Do not copy proprietary source code, logos, branding, protected designs or copyrighted website content.
+
+This is not a static UI prototype. Build working end-to-end functionality connected to a real database, backend, authentication, file storage, search system, notification system and required integrations.
+
+Do not generate the entire application in one uncontrolled step. First understand the requirements, inspect the existing repository, prepare the architecture and implement the platform in carefully tested phases.
+
+## 2. MOST IMPORTANT PRODUCT DIFFERENTIATOR
+
+The platform must have a built-in AI-based live audio/video interview system.
+
+A recruiter should be able to:
+
+1. Create a job and configure AI interview questions during job creation.
+2. Ask AI to suggest ten job-specific interview questions.
+3. Edit, delete, reorder, replace and approve the questions.
+4. Configure the AI interview opening, closing, language, voice and interview settings.
+5. Receive applications or find candidates through the recruiter database.
+6. Shortlist a candidate for an AI interview.
+7. Send a unique interview invitation link by email.
+8. Have the candidate verify their identity using an OTP sent to their email.
+9. Let the candidate complete an interactive, AI-led audio/video interview in the browser.
+10. Receive an automatic notification when the interview is completed.
+11. Review the recording, transcript, answers, question-wise summary and technical status.
+12. Decide whether to shortlist, reject, hold or advance the candidate to the next recruitment stage.
+
+The AI interview must be integrated with the job, candidate, application, recruiter, company and ATS records. It must not be an isolated application disconnected from the main portal.
+
+The final hiring decision must remain with an authorized human recruiter or hiring manager.
+
+---
+
+# PART A — PRODUCT ARCHITECTURE AND USER ROLES
+
+## 3. SUPPORTED USER TYPES
+
+Implement separate dashboards and permission sets for:
+
+A. Candidate / Job Seeker
+B. Recruiter / Talent Acquisition Consultant
+C. Employer / Company Owner
+D. Hiring Manager / Interview Panel Member
+E. Recruitment Agency / Independent Consultant
+F. Super Admin
+G. Operations / Job Verification Admin
+H. Customer Support Agent
+I. Finance / Billing Administrator
+
+A user may have multiple authorized roles where appropriate, but every action must be checked against server-side permissions.
+
+Company membership, recruiter ownership, agency-client relationships and access to candidate data must be enforced consistently.
+
+Do not rely on frontend route hiding as a security mechanism.
+
+## 4. AUTHENTICATION
+
+Implement:
+
+- Email and password registration.
+- Email OTP or verification links.
+- Mobile OTP through a configured provider, if enabled.
+- Google authentication, if configured.
+- Forgot-password and secure password-reset flow.
+- Login/logout and session management.
+- Optional multi-factor authentication for privileged users.
+- Login attempt limits and rate limiting.
+- Suspicious login handling.
+- Session revocation and logout from all devices.
+- Account suspension and reactivation.
+- Account deletion request workflow.
+- Terms of service and privacy consent records.
+
+Never store passwords or OTPs in plaintext.
+
+Do not simulate successful email, OTP, Google login or SMS delivery when the required provider is not configured.
+
+## 5. CANDIDATE PROFILE MODULE
+
+Create a complete candidate profile with:
+
+- Full name and optional profile photograph.
+- Professional headline and summary.
+- Current and previous employment.
+- Current designation and preferred designation.
+- Total experience and relevant experience.
+- Current salary, expected salary and salary basis.
+- Notice period.
+- Earliest joining date.
+- Immediate joiner / serving notice / employed status.
+- Current location and preferred work locations.
+- Relocation preference.
+- Work mode: office, hybrid or remote.
+- Employment type.
+- Education, qualifications and certifications.
+- Skills, tools, technologies and languages.
+- Projects, achievements and portfolio links.
+- Industry and functional specializations.
+- Resume upload, multiple versions and resume builder.
+- Profile completion indicator.
+- Profile visibility and recruiter-blocking settings.
+- Saved jobs and saved searches.
+- Applied jobs and application history.
+- Upcoming interviews.
+- Messages and notifications.
+- Privacy, consent and account settings.
+
+Make optional personal attributes optional. Do not request sensitive information without a legitimate requirement.
+
+## 6. RESUME MANAGEMENT
+
+Implement:
+
+- Secure PDF/DOCX upload.
+- File validation and size limits.
+- Resume preview and download where authorized.
+- Resume replacement and version history.
+- Structured resume builder.
+- PDF export.
+- Resume parsing into editable profile fields.
+- Skill extraction and work-experience extraction.
+- Optional AI resume summary.
+- Optional job-specific resume suggestions.
+- Resume visibility controls.
+- Private file storage and expiring download links.
+- File access audit logging for sensitive operations.
+
+Never invent qualifications, experience, employers, skills or achievements through AI.
+
+Parsed data must be treated as potentially inaccurate and remain editable.
+
+## 7. PUBLIC JOB PORTAL
+
+Build:
+
+- Homepage and global job search.
+- Job listing and job detail pages.
+- Company profile pages.
+- Employer registration and pricing pages.
+- Career advice and help pages.
+- About, contact, privacy and terms pages.
+- Responsive mobile, tablet and desktop layouts.
+- Search engine-friendly URLs and metadata.
+- Sitemap and appropriate robots directives.
+- Accessible forms, keyboard navigation and meaningful loading/error states.
+
+Public pages must show only published, active and appropriately visible jobs.
+
+Confidential or private jobs must not be exposed through public URLs, search results or search-engine indexing.
+
+## 8. JOB SEARCH AND APPLICATION SYSTEM
+
+Provide job search filters for:
+
+- Title and keywords.
+- Required and preferred skills.
+- Location and remote/hybrid/office mode.
+- Experience range.
+- Salary range and compensation basis.
+- Industry and functional category.
+- Employment type.
+- Company.
+- Education, where relevant.
+- Date posted.
+- Verified employer status.
+- Application deadline.
+- Job relevance and publication date.
+
+Implement keyword search, Boolean search where appropriate, saved searches, alerts, sorting, pagination, similar jobs and duplicate-job detection.
+
+Candidates must be able to:
+
+- Open job details.
+- Apply using their profile and selected resume.
+- Answer screening questions.
+- Submit an application.
+- Receive an application ID and confirmation.
+- Track the application status.
+- Withdraw an application where allowed.
+- Update relevant profile details.
+- Report suspicious jobs.
+- Manage job alerts and privacy preferences.
+
+Prevent duplicate applications to the same job unless the business explicitly supports reapplication.
+
+Store the resume snapshot or version reference used at the time of application.
+
+## 9. RECRUITER AND EMPLOYER SYSTEM
+
+Implement:
+
+- Company registration and verification.
+- Company profile and employer branding.
+- Recruiter profile and permissions.
+- Company team membership.
+- Job creation, editing and publishing.
+- Draft, approval, active, paused and closed states.
+- Job expiry and renewal.
+- Screening questions.
+- Applicant list and applicant filters.
+- Candidate database search.
+- Boolean and advanced search.
+- Candidate folders, tags and internal notes.
+- Candidate shortlisting and rejection.
+- ATS stage management.
+- Interview scheduling and feedback.
+- Offer management.
+- Joining tracking.
+- Recruiter notifications and reports.
+- Subscription and usage management.
+
+Candidate sources must include, where applicable:
+
+- Direct portal application.
+- Recruiter database search.
+- Recruitment agency submission.
+- Referral.
+- Imported candidate with appropriate authorization.
+- Other configurable sources.
+
+Every application or candidate submission must preserve its source and relevant history.
+
+Do not treat a sourced candidate as an applicant until the candidate has actually applied or an authorized recruiter workflow explicitly records the submission.
+
+## 10. ATS PIPELINE
+
+Support configurable stages such as:
+
+- New Application.
+- Sourced.
+- Contacted.
+- Screening Pending.
+- AI Interview Invited.
+- AI Interview Scheduled.
+- AI Interview In Progress.
+- AI Interview Completed.
+- Recruiter Review Pending.
+- Recruiter Screen.
+- Technical Interview.
+- Hiring Manager Interview.
+- Final Interview.
+- Offer Approval.
+- Offer Sent.
+- Offer Accepted.
+- Hired / Joined.
+- Rejected.
+- Withdrawn.
+- On Hold.
+
+Companies may configure additional stages.
+
+Use a valid stage-transition model. Do not move a candidate into a stage merely because an email was sent or an interview link was opened.
+
+Store stage history, timestamps, actor, reason and relevant notes.
+
+Rejected, withdrawn, no-show and expired-invitation outcomes must be distinguishable.
+
+The AI interview must be one part of this configurable recruitment pipeline.
+
+---
+
+# PART B — AI LIVE AUDIO/VIDEO INTERVIEW PLATFORM
+
+## 11. DEFINE THE INTERVIEW PRODUCT CORRECTLY
+
+The AI interviewer must conduct a real-time, interactive interview through the candidate's browser.
+
+It must support:
+
+- Live audio conversation.
+- Optional live video.
+- Spoken AI questions.
+- Candidate spoken answers.
+- Speech-to-text transcription.
+- Question sequencing.
+- Answer capture.
+- Interview progress tracking.
+- Audio/video connection status.
+- Interview completion.
+- Secure evidence and recording storage, subject to consent and configuration.
+- Recruiter review after completion.
+
+Do not implement this as merely a prerecorded video with a list of questions.
+
+Do not implement a fake AI interviewer that displays a question but cannot listen to the candidate's response.
+
+If a real-time AI voice service is required, integrate a suitable provider through a secure backend. If no provider is configured, build the integration interface, setup documentation and honest unavailable state. Never claim a live AI interview works until it has been tested end to end.
+
+## 12. RECRUITER CONFIGURES AI INTERVIEW DURING JOB CREATION
+
+Add a dedicated step to the job-posting wizard:
+
+Step 1: Job basics.
+Step 2: Job description.
+Step 3: Required and preferred skills.
+Step 4: Experience, compensation and location.
+Step 5: Screening questions.
+Step 6: AI interview configuration.
+Step 7: Preview and publish.
+
+The recruiter must be able to enable or disable the AI interview for each job.
+
+### AI interview configuration fields
+
+- Interview enabled: Yes / No.
+- Interview type: Audio-only or Audio + Video.
+- Default number of questions: 10.
+- Configurable number of questions, if supported by the product.
+- Interview language.
+- AI voice selection.
+- Question categories.
+- Question order.
+- Opening script.
+- Closing script.
+- Per-question time limit.
+- Total interview duration.
+- Answer waiting time.
+- Maximum retries for a technical interruption.
+- Whether candidate re-entry is allowed.
+- Whether recording is enabled.
+- Recording and transcription consent wording.
+- Invitation expiry.
+- Candidate preparation instructions.
+- Interview evaluation rubric.
+- Recruiter review settings.
+
+Provide sensible defaults and validation. Do not silently change a recruiter's approved interview configuration.
+
+## 13. AI-GENERATED QUESTION SUGGESTIONS
+
+When the recruiter enters the job description and required skills, provide a button:
+
+"Generate 10 AI Interview Questions"
+
+Use the job title, job description, required skills, experience level, screening requirements and interview language to generate a relevant set of questions.
+
+The recruiter must be able to:
+
+- Generate ten suggestions.
+- Regenerate all suggestions.
+- Regenerate one selected question.
+- Edit the wording.
+- Delete a question.
+- Add a custom question.
+- Reorder questions.
+- Preview spoken wording.
+- Mark must-ask questions.
+- Approve the final set.
+- Save the configuration.
+- Reuse a previous approved question set, where authorized.
+
+The AI must not invent job requirements that the recruiter did not specify.
+
+Store the approved question set as a versioned interview template linked to the job.
+
+For an interview invitation already sent, retain the approved question-set version used by that invitation. Editing the job later must not silently modify an already-issued interview.
+
+### Default question structure
+
+Use ten questions as the default, with categories that can be edited:
+
+1. Candidate introduction and current professional role.
+2. Relevant experience.
+3. Primary required skill.
+4. Secondary required skill.
+5. Practical example of work performed.
+6. Role-specific problem-solving scenario.
+7. Relevant project or achievement.
+8. Current compensation and compensation expectations.
+9. Notice period and earliest joining date.
+10. Candidate availability, motivation and closing confirmation.
+
+These are categories, not mandatory identical wording for every job. AI must adapt them to the role.
+
+For example, a Salesforce Business Analyst interview should ask about requirements gathering, Sales Cloud, Service Cloud, stakeholder management and relevant project experience if those skills are required.
+
+A manufacturing maintenance role should ask about plant maintenance, breakdown management, preventive maintenance and other relevant skills only when present in the job requirements.
+
+The AI must not ask irrelevant questions simply to fill ten slots. If a question is not applicable, the recruiter should be able to replace it before approval.
+
+## 14. OPENING AND CLOSING SCRIPTS
+
+Provide editable opening and closing scripts.
+
+### Example opening
+
+"Namaste, welcome to your interview for the [Job Title] position at [Company Name].
+
+I am your AI interview assistant. I will ask you a series of questions related to your experience and the role.
+
+Please answer clearly and naturally. If you cannot hear a question, you can ask me to repeat it.
+
+This interview may be recorded and transcribed according to the consent information shown before you begin. Your responses will be shared with the authorized hiring team for recruitment review.
+
+Are you ready to begin?"
+
+Before recording starts, show the candidate the applicable recording and data-use notice and collect the required consent.
+
+Do not start recording before consent where consent is required.
+
+### Example closing
+
+"Thank you for completing your interview for the [Job Title] position.
+
+Your responses have been submitted for review by the recruitment team. The recruiter will review your interview and update you about the next step.
+
+Before we finish, I will confirm the recruitment details you provided."
+
+If compensation and availability questions are included, confirm the candidate's responses in a neutral manner. Do not make a hiring promise or imply that the candidate has passed.
+
+Allow the recruiter to edit the scripts and choose whether compensation confirmation occurs before the final thank-you.
+
+## 15. INDIAN ENGLISH AND INDIAN VOICE OPTIONS
+
+The AI interviewer must offer natural, professional Indian-accented English voice options, including:
+
+- Indian English male voice.
+- Indian English female voice.
+
+Where a provider supports additional languages and voices, allow configured options such as Hindi or other approved interview languages.
+
+The recruiter selects the voice when configuring the job, subject to supported provider capabilities.
+
+Requirements:
+
+- Clear pronunciation of Indian names and company names where possible.
+- Natural pauses and professional pacing.
+- Consistent voice throughout one interview.
+- No abrupt voice changes.
+- Appropriate pronunciation of salary figures, abbreviations and technical terminology.
+- Adjustable speech rate where supported.
+- A preview feature for the recruiter.
+- A candidate audio test before the interview.
+- Accessible text display of each spoken question.
+- Repeat-question capability.
+
+The voice must be genuinely synthesized by the configured speech provider. Do not use a hardcoded recording and label it as real-time AI speech.
+
+If a particular voice or language is unsupported, show that clearly and offer an available alternative.
+
+## 16. RECRUITER SHORTLISTS A CANDIDATE AND SENDS INVITATION
+
+Implement the complete invitation workflow.
+
+### Step 1: Recruiter selects the candidate
+
+The recruiter may select a candidate from:
+
+- Job applicants.
+- Recruiter candidate database.
+- Authorized sourced candidates.
+- Agency submissions.
+- Other approved candidate sources.
+
+### Step 2: Recruiter initiates AI interview
+
+Show a confirmation screen containing:
+
+- Candidate name.
+- Candidate email.
+- Job title.
+- Company.
+- Approved interview question-set version.
+- Interview mode.
+- Interview duration.
+- Selected AI voice and language.
+- Invitation expiry.
+- Recording/consent information.
+- Send invitation button.
+
+Verify that the recruiter has permission to invite this candidate for this job.
+
+### Step 3: Create the invitation
+
+Generate a cryptographically secure, unique invitation identifier and token.
+
+The token must be unpredictable, revocable, limited in scope and linked to the intended candidate, job and interview.
+
+Store a secure token hash where practical. Never expose internal database IDs as authorization tokens.
+
+Invitation states should include:
+
+- Draft.
+- Queued.
+- Sent.
+- Delivery Failed.
+- Opened.
+- OTP Pending.
+- Verified.
+- Ready.
+- In Progress.
+- Completed.
+- Expired.
+- Revoked.
+- Cancelled.
+- Technical Failure.
+- No Show.
+
+A link being opened must not automatically count as interview attendance or completion.
+
+### Step 4: Send the email invitation
+
+Send an email to the candidate's verified or recruiter-authorized contact address.
+
+The email must contain:
+
+- Professional subject.
+- Company and job title.
+- Interview invitation.
+- Secure interview link.
+- Invitation expiry date and time with timezone.
+- Expected duration.
+- Supported browser/device instructions.
+- Camera/microphone requirements.
+- Preparation instructions.
+- Privacy and recording information.
+- OTP verification instructions.
+- Support contact or help link.
+
+The link must lead to the interview preparation page, not directly start recording.
+
+Track delivery status through the email provider where available.
+
+If delivery fails, inform the recruiter and provide a secure resend option.
+
+Do not resend multiple active invitations unintentionally.
+
+## 17. EMAIL OTP VERIFICATION
+
+When the candidate opens the invitation:
+
+1. Validate the invitation token.
+2. Check its expiry and revocation status.
+3. Display the job and company details.
+4. Ask the candidate to request an OTP.
+5. Send the OTP to the intended candidate email address.
+6. Let the candidate enter the OTP.
+7. Verify the OTP securely on the server.
+8. Create a short-lived verified interview session.
+9. Allow the candidate to continue to the pre-interview checks.
+
+OTP requirements:
+
+- Cryptographically secure generation.
+- Short configurable expiry.
+- One-time use.
+- Maximum verification attempts.
+- Resend cooldown.
+- Rate limiting by invitation, account and IP where appropriate.
+- Secure storage of OTP hashes.
+- Invalidation of previous codes according to defined rules.
+- Clear invalid, expired and exhausted-attempt messages.
+- Generic errors where necessary to avoid account enumeration.
+- Audited verification outcomes without storing the OTP itself in logs.
+
+Do not use email OTP as the only authorization control. The invitation, candidate/job binding, session and interview permissions must also be validated.
+
+Do not require a separate full candidate account merely to attend an interview if a secure guest interview flow is supported. If the candidate already has an account, offer the authenticated flow where appropriate.
+
+## 18. PRE-INTERVIEW LOBBY
+
+After OTP verification, show a dedicated interview lobby.
+
+Include:
+
+- Job title and company.
+- Interview duration and instructions.
+- Microphone test.
+- Camera test if video mode is enabled.
+- Speaker/headphone test.
+- Browser permission status.
+- Network connection check.
+- Audio playback test for the selected AI voice.
+- Privacy notice and consent.
+- Recording indicator explanation.
+- Start Interview button.
+- Troubleshooting guide.
+- Support link.
+- Exit / cancel option.
+
+The candidate must explicitly start the interview.
+
+Do not request camera permission in audio-only mode.
+
+If required microphone permission is denied, explain how to enable it. Do not silently switch to a nonfunctional mode.
+
+If the device or browser is unsupported, show an actionable error before the interview begins.
+
+## 19. LIVE AI INTERVIEW SESSION
+
+Implement a real-time state machine:
+
+CREATED
+→ INVITATION_SENT
+→ OTP_VERIFIED
+→ PRECHECK
+→ CONSENT_CONFIRMED
+→ READY
+→ IN_PROGRESS
+→ PAUSED / RECONNECTING when necessary
+→ COMPLETED
+
+Additional terminal states:
+
+- CANCELLED.
+- EXPIRED.
+- ABANDONED.
+- TECHNICAL_FAILURE.
+- INVALIDATED.
+
+Define valid transitions and persist them on the server.
+
+### Interview screen
+
+Display:
+
+- AI interviewer status.
+- Current question number and total questions.
+- Question text.
+- AI speaking / listening indicator.
+- Candidate microphone status.
+- Camera preview when enabled.
+- Interview timer.
+- Connection status.
+- Repeat-question control.
+- Audio controls.
+- Help and exit controls.
+- Clear recording indicator if recording is active.
+
+Keep the interface professional, uncluttered and accessible.
+
+### Question flow
+
+For each approved question:
+
+1. Load the next question from the approved version.
+2. Display the question text.
+3. Speak the question using the selected Indian voice.
+4. Wait until speech playback has completed.
+5. Start listening for the candidate's response.
+6. Detect speech activity and capture the answer.
+7. Convert speech to text using the configured speech recognition service.
+8. Store the transcript with timestamps where supported.
+9. Detect the end of the answer using a configurable silence threshold and maximum answer duration.
+10. Allow the candidate to finish naturally without cutting them off too early.
+11. If no response is detected, ask whether the candidate needs the question repeated.
+12. Store the answer status and proceed according to the approved rules.
+13. Move to the next question.
+14. Show progress and remaining questions.
+
+The system must not ask a new question while the candidate is still answering.
+
+Avoid overlapping AI speech and candidate speech.
+
+Support repeating the current question without automatically skipping it.
+
+Where a candidate requests clarification, repeat the approved question or provide only an approved neutral clarification. Do not invent additional job requirements.
+
+### Fixed and dynamic questions
+
+The default interview contains ten recruiter-approved questions.
+
+During a standard interview, the AI must not freely invent new evaluative questions that the recruiter has not approved.
+
+Optional follow-up questions may be supported only if the recruiter explicitly enables them, defines their limits and approves the question-generation policy.
+
+Every generated follow-up must be logged. It must remain relevant to the role and must not request protected or unnecessary sensitive information.
+
+## 20. CTC, EXPECTED CTC, NOTICE PERIOD AND JOINING QUESTIONS
+
+Provide recruiter-configurable compensation and availability questions.
+
+Suggested wording:
+
+"Could you please confirm your current annual compensation, or CTC, and the currency and compensation period?"
+
+"What is your expected annual compensation for this role?"
+
+"What is your current notice period?"
+
+"What is your earliest possible joining date?"
+
+"Are you currently serving your notice period, and if so, when is your expected last working day?"
+
+"Would you be available to work in the location and work arrangement described for this position?"
+
+Important:
+
+- CTC and expected CTC must be separate fields.
+- Do not confuse current CTC with expected CTC.
+- Store the compensation amount, currency and pay period where applicable.
+- If the candidate declines to disclose current compensation, allow that response according to company policy.
+- Do not assume zero compensation if the candidate refuses to answer.
+- Allow "Not disclosed", "Negotiable" or "Prefer to discuss with recruiter" where appropriate.
+- Store notice period as a structured value plus optional explanation.
+- Distinguish contractual notice period from actual availability.
+- Record the candidate's answer accurately without inventing a value.
+- Allow the recruiter to correct a transcription error through an audited correction workflow.
+- Do not automatically reject a candidate based solely on these answers.
+
+Questions must remain configurable by role and employer policy.
+
+## 21. SPEECH RECOGNITION AND TRANSCRIPT MANAGEMENT
+
+Implement a speech recognition integration capable of handling the configured interview language.
+
+Requirements:
+
+- Transcribe candidate speech.
+- Preserve the original transcript.
+- Associate each answer with its question.
+- Store timestamps where supported.
+- Indicate low-confidence transcription.
+- Support correction by an authorized reviewer.
+- Preserve original and corrected transcript versions.
+- Handle common Indian English pronunciation and technical vocabulary as well as the provider allows.
+- Avoid interpreting silence as a negative answer.
+- Distinguish transcription failure from a candidate not answering.
+- Handle network and service errors gracefully.
+
+Do not silently replace a candidate's spoken answer with an AI-generated interpretation.
+
+The transcript must remain distinguishable from an AI summary.
+
+## 22. LIVE AUDIO/VIDEO TECHNICAL ARCHITECTURE
+
+Evaluate a suitable real-time voice architecture before implementation.
+
+Possible components include:
+
+- Browser audio capture.
+- Optional browser video capture.
+- WebRTC for real-time media where appropriate.
+- A secure real-time audio AI provider.
+- Speech-to-text.
+- Text-to-speech.
+- A server-side session controller.
+- A persistent interview state machine.
+- Secure media storage when recording is enabled.
+- Database event persistence.
+- Reconnection and recovery logic.
+
+Choose the architecture based on latency, provider support, reliability, privacy, cost and browser compatibility.
+
+Never expose provider API secrets in frontend code.
+
+If temporary client tokens are required, issue short-lived, scoped tokens from the backend.
+
+If the chosen AI provider supports a native real-time speech interface, use it where appropriate instead of unnecessarily chaining multiple slow services.
+
+Do not assume that every provider supports live audio, video, transcription, recording and Indian voices. Verify each capability before committing to an integration.
+
+## 23. VIDEO RECORDING AND MEDIA STORAGE
+
+When video mode is enabled and recording is appropriately disclosed and consented to:
+
+- Record the candidate video and audio where technically supported.
+- Preserve interview start/end timestamps.
+- Store media privately.
+- Link media to the correct interview session.
+- Generate secure, expiring playback URLs for authorized reviewers.
+- Restrict access to authorized hiring team members.
+- Prevent public access to recording URLs.
+- Track authorized recording access.
+- Support configured retention and deletion policies.
+- Handle partial recordings and interrupted uploads.
+- Verify file integrity after upload.
+- Use multipart or resumable uploads where appropriate.
+- Provide clear states for recording unavailable or incomplete.
+
+If recording is disabled, the application must not secretly record media.
+
+If live video is supported but recording is not, clearly distinguish the live interview from a saved video recording.
+
+The interview should not fail merely because optional recording is unavailable, unless the employer's approved policy requires recording. In that case, explain the limitation before the interview starts.
+
+Do not perform covert facial emotion analysis, attractiveness scoring, personality inference from appearance or accent-based candidate ranking.
+
+## 24. INTERRUPTIONS, DISCONNECTIONS AND RETRIES
+
+A production interview must handle:
+
+- Temporary network loss.
+- Browser refresh.
+- Candidate accidentally closing the tab.
+- Microphone disconnection.
+- Camera disconnection.
+- AI provider outage.
+- Speech recognition failure.
+- Text-to-speech failure.
+- Server timeout.
+- Partial recording upload.
+- Duplicate browser requests.
+- Session expiry.
+
+Implement:
+
+- Heartbeats and connection monitoring.
+- Configurable reconnect grace period.
+- Secure session resume.
+- Persistent question index.
+- Saved completed answers.
+- Idempotent answer submissions.
+- Recovery from the last safe checkpoint.
+- Clear connection status and retry messages.
+- Interview interruption logs.
+- Recruiter alerts for unresolved technical failures.
+
+Never restart the interview from question one automatically after a recoverable network failure.
+
+Never mark an interview completed if mandatory questions or required processing remain unfinished.
+
+Define what happens when the candidate's reconnect window expires. Offer a controlled resume or reschedule path according to employer policy.
+
+## 25. INTERVIEW COMPLETION
+
+After the last approved question:
+
+1. Finish the candidate's current response.
+2. Save all answers and transcripts.
+3. Complete pending media uploads.
+4. Verify the interview completion requirements.
+5. Mark the interview as completed on the server.
+6. Record the completion timestamp.
+7. Generate a processing state for transcription or summary tasks still running.
+8. Show the candidate a completion confirmation.
+9. Send a completion notification to the recruiter.
+10. Update the ATS interview status.
+11. Queue a post-interview summary job.
+12. Notify the recruiter when the review package is ready.
+
+Use distinct statuses such as:
+
+- Interview Completed — Processing.
+- Review Ready.
+- Review Failed — Retry Available.
+
+Do not confuse completion of the live session with completion of asynchronous recording uploads or AI summarization.
+
+If processing fails, preserve the interview data and allow a retry without asking the candidate to repeat a successfully completed interview.
+
+## 26. RECRUITER COMPLETION NOTIFICATION
+
+When the candidate completes the interview, send the authorized recruiter a notification.
+
+Example:
+
+Subject: AI Interview Completed — [Candidate Name] — [Job Title]
+
+Message:
+
+"[Candidate Name] has completed the AI interview for [Job Title].
+
+Interview status: Completed.
+Completed at: [Date and Time with Timezone].
+Review status: [Processing / Ready].
+
+Please open the recruitment dashboard to review the interview transcript, question-wise answers and available recording.
+
+The candidate has not been automatically selected or rejected. Please review the evidence and update the candidate's recruitment status."
+
+The notification must link to an authenticated recruiter dashboard page.
+
+Never include a publicly accessible recording URL or unnecessary candidate personal data in the email.
+
+Support in-app and email notifications, configurable recipient rules and delivery status tracking.
+
+## 27. RECRUITER INTERVIEW REVIEW DASHBOARD
+
+Create a dedicated AI Interview Review page.
+
+Show:
+
+A. Candidate information:
+- Candidate name and authorized profile details.
+- Job title.
+- Application/source.
+- Recruiter responsible.
+- Invitation date.
+- Interview start and completion timestamps.
+- Interview mode.
+- Completion status.
+- Technical interruptions, if any.
+
+B. Interview playback:
+- Secure video player where recording exists.
+- Audio playback.
+- Playback speed controls where supported.
+- Timeline and timestamps.
+- Question-wise navigation.
+- Audio-only transcript playback when video is unavailable.
+- Clear indication of missing or incomplete media.
+
+C. Question-wise review:
+- Approved question.
+- Candidate transcript.
+- Answer duration.
+- Recording timestamp.
+- Transcription confidence or error indicator.
+- Recruiter notes.
+- Reviewer assessment.
+- Optional corrected transcript, preserving the original.
+
+D. AI-generated summary:
+- Candidate's stated experience.
+- Evidence relevant to required skills.
+- Answers to each approved question.
+- Relevant strengths supported by the transcript.
+- Areas requiring clarification.
+- Missing or unclear information.
+- Compensation and notice-period answers.
+- Technical interruptions or transcription limitations.
+- Links or timestamps to the underlying evidence where available.
+
+E. Recruiter actions:
+- Mark Reviewed.
+- Shortlist.
+- Reject.
+- Hold.
+- Request Additional Interview.
+- Move to Next Stage.
+- Schedule Human Interview.
+- Add Internal Notes.
+- Assign Another Reviewer.
+- Download an authorized report.
+- View audit history.
+
+The recruiter must be able to review the raw answer and transcript before acting on the AI summary.
+
+## 28. AI INTERVIEW SCORING AND FAIRNESS
+
+If a scoring rubric is enabled, it must be configured by the recruiter before the interview.
+
+Possible dimensions:
+
+- Role-specific skill evidence.
+- Relevant experience evidence.
+- Problem-solving evidence.
+- Communication clarity relevant to the job.
+- Completeness of the answer.
+
+Each assessment must have a clear explanation linked to the candidate's answer or transcript.
+
+Do not use protected characteristics, appearance, facial expressions, accent, perceived personality, gender, age or unrelated personal traits to rank candidates.
+
+Do not invent a numeric score when there is insufficient evidence.
+
+Distinguish these concepts clearly:
+
+- AI summary.
+- Evidence-based assessment.
+- Technical/transcription confidence.
+- Recruiter decision.
+
+The default configuration must not automatically reject candidates.
+
+Recruiters must be able to override an AI assessment, document their reasoning and make the final hiring decision.
+
+Audit changes to scores, rubrics, reviewer decisions and status transitions.
+
+## 29. CANDIDATE POST-INTERVIEW EXPERIENCE
+
+After completion, show:
+
+- Thank-you message.
+- Confirmation that the interview was submitted.
+- Job title and company.
+- A reference ID.
+- What happens next.
+- Support contact.
+- Exit button.
+
+Do not reveal confidential internal notes, recruiter evaluations, other candidates' data or private hiring deliberations.
+
+Do not promise a selection, interview result or response deadline unless configured and approved by the employer.
+
+If the candidate wants to report a technical issue, provide a support link.
+
+---
+
+# PART C — DATABASE AND API DESIGN
+
+## 30. REQUIRED DATABASE ENTITIES
+
+Design normalized database tables with relationships, constraints, indexes, migrations and timestamps.
+
+At minimum include:
+
+- users
+- user_roles
+- candidate_profiles
+- candidate_experiences
+- candidate_education
+- skills
+- candidate_skills
+- resumes
+- companies
+- company_members
+- recruitment_agencies
+- agency_clients
+- jobs
+- job_skills
+- job_screening_questions
+- applications
+- application_events
+- candidate_sources
+- candidate_folders
+- candidate_folder_members
+- candidate_notes
+- interview_templates
+- interview_template_versions
+- interview_questions
+- interview_invitations
+- interview_sessions
+- interview_session_events
+- interview_answers
+- interview_transcripts
+- interview_recordings
+- interview_processing_jobs
+- interview_review_summaries
+- interview_rubrics
+- interview_assessments
+- interview_reviewer_notes
+- interviews
+- interview_feedback
+- offers
+- messages
+- notifications
+- email_delivery_events
+- consent_records
+- subscriptions
+- plans
+- usage_ledger
+- payments
+- invoices
+- support_tickets
+- reports
+- audit_logs
+- admin_settings
+
+Add additional entities where needed.
+
+Do not store all interview questions, answers, timestamps and recordings as one unstructured JSON blob. Use relational entities for core data and JSON only where it is appropriate for flexible provider metadata.
+
+### Interview relationships
+
+Every interview invitation must be linked to:
+
+- The intended candidate.
+- The job.
+- The relevant application or authorized sourcing record.
+- The recruiting company.
+- The recruiter who initiated it.
+- The approved question-set version.
+- The configured interview settings.
+
+Every session must be linked to its invitation.
+
+Every answer must be linked to its question and session.
+
+Every recording must be linked to the correct session and include metadata, storage location, status and retention information.
+
+Every review and recruiter decision must have an actor, timestamp and audit trail.
+
+Support multiple invitations and attempts only according to explicit rules. Do not overwrite the history of previous attempts.
+
+## 31. API REQUIREMENTS
+
+Design documented server-side APIs for:
+
+- Authentication and profile management.
+- Resume upload and secure download.
+- Job creation and search.
+- Applications and application status.
+- Recruiter candidate search.
+- Candidate shortlisting.
+- Interview template generation and editing.
+- Question approval and versioning.
+- Interview invitation creation.
+- Email delivery and resend.
+- OTP request and verification.
+- Interview session creation and validation.
+- Pre-interview checks and consent.
+- Secure real-time session token issuance.
+- Answer and transcript persistence.
+- Interview state transitions.
+- Recording upload and playback authorization.
+- Completion processing.
+- Summary generation.
+- Recruiter review and decisions.
+- Notifications and audit history.
+- Admin moderation and configuration.
+
+Document request/response schemas, validation rules, authorization, error codes and rate limits.
+
+Use idempotency keys for actions that may be retried.
+
+Do not trust candidate IDs, job IDs, company IDs or role claims supplied by the browser without server-side verification.
+
+## 32. BACKGROUND PROCESSING
+
+Implement reliable background processing for:
+
+- Resume parsing.
+- AI question suggestions.
+- Invitation emails.
+- OTP emails.
+- Interview reminders.
+- Transcript generation.
+- Recording finalization.
+- AI interview summaries.
+- Recruiter completion notifications.
+- Job expiry.
+- Subscription renewal notifications.
+- Data-retention and deletion tasks.
+
+Use retry policies, dead-letter/error tracking where supported, idempotency and visible processing states.
+
+Do not block the live interview while unrelated reporting or analytics jobs execute.
+
+---
+
+# PART D — ADMIN, PAYMENTS AND OPERATIONS
+
+## 33. ADMIN DASHBOARD
+
+Implement separate permissions for:
+
+- Super Admin.
+- Job Verification Admin.
+- Company Verification Admin.
+- Operations Admin.
+- Support Agent.
+- Finance Admin.
+- Analytics Viewer.
+
+Provide:
+
+- User management.
+- Company and recruiter verification.
+- Job moderation.
+- Reported-job review.
+- Interview service health.
+- AI provider health and usage.
+- Failed invitation and email monitoring.
+- Interview processing failures.
+- Support tickets.
+- Payment management.
+- Subscription plans.
+- Usage limits and credit management.
+- Invoices and refunds.
+- Platform analytics.
+- Notification templates.
+- Security and audit logs.
+- Privacy requests.
+- Retention policy configuration.
+- Feature flags.
+- Integration status.
+- Error monitoring and system status.
+
+Support staff must not automatically have access to private interview recordings. Grant access only when necessary and authorized, and log it.
+
+## 34. PAYMENTS AND MONETIZATION
+
+Design configurable plans for:
+
+- Free candidate accounts.
+- Paid job posting.
+- Featured job listings.
+- Recruiter candidate-search subscriptions.
+- Resume/contact unlock credits.
+- Company ATS plans.
+- Agency subscriptions.
+- AI interview usage plans or credits.
+- Optional enterprise plans.
+
+Implement:
+
+- Plan catalogue.
+- Monthly and annual billing.
+- Trial periods.
+- Usage limits.
+- Payment gateway integration.
+- Verified payment webhooks.
+- Idempotent transaction processing.
+- Invoices and tax configuration.
+- Upgrade/downgrade.
+- Renewals and cancellations.
+- Refund workflows.
+- Credit usage ledger.
+- AI usage metering.
+- Payment reconciliation.
+- Admin audit records.
+
+Never activate paid entitlements solely because the browser displays a success page.
+
+Do not hardcode secret credentials, provider pricing or plan limits into the frontend.
+
+## 35. EMAIL AND NOTIFICATIONS
+
+Provide templates and event-based notifications for:
+
+- Account verification.
+- Password reset.
+- New application.
+- Recruiter shortlist or status update.
+- Interview invitation.
+- OTP verification.
+- Interview reminders.
+- Interview cancellation or rescheduling.
+- Candidate completion.
+- Recruiter review availability.
+- Technical failure.
+- Offer and joining updates.
+- Subscription and payment events.
+- Support tickets.
+
+Support delivery tracking, retries, bounce handling, deduplication and user notification preferences.
+
+Do not send sensitive interview recordings or private candidate details as email attachments by default.
+
+---
+
+# PART E — SECURITY, PRIVACY AND COMPLIANCE
+
+## 36. SECURITY BASELINE
+
+Implement:
+
+- Server-side authorization.
+- Role-based and organization-based access control.
+- Database row-level security where appropriate.
+- Private object storage.
+- Expiring signed URLs.
+- Secure token generation.
+- OTP rate limits.
+- CSRF/XSS/SQL injection protection.
+- Request validation.
+- File validation and malware scanning.
+- Secret management.
+- HTTPS.
+- Session management.
+- Audit logs.
+- Admin MFA.
+- Backups and restore testing.
+- Error monitoring.
+- Dependency vulnerability checks.
+- Secure headers and appropriate content security policy.
+- API rate limiting.
+- Abuse prevention.
+
+Keep sensitive candidate data out of unnecessary application logs.
+
+## 37. PRIVACY AND CONSENT
+
+Before a recorded AI interview, clearly explain:
+
+- What media will be captured.
+- Whether video, audio or both will be recorded.
+- Whether speech will be transcribed.
+- How the material will be used.
+- Which authorized hiring personnel can access it.
+- Applicable retention period.
+- How to contact support or exercise applicable privacy rights.
+
+Collect and record the required consent before recording begins.
+
+Implement retention and deletion workflows for recordings, transcripts, AI summaries and derived data.
+
+Where deletion is legally required, handle derived copies and backups according to the documented retention and legal requirements.
+
+Verify applicable Indian data-protection and other relevant legal obligations before launch.
+
+Do not use candidate media to train unrelated AI models unless a separate lawful basis and appropriate permissions exist.
+
+## 38. FAIR HIRING
+
+Do not make facial emotion analysis, appearance ratings, accent-based ranking or unsupported personality inference part of the hiring system.
+
+Keep interview evaluation tied to job-related evidence.
+
+Make AI-generated summaries explainable and reviewable.
+
+Allow candidates to report technical problems and request reasonable support.
+
+Allow authorized recruiters to correct transcript errors and override automated suggestions.
+
+AI must assist the recruitment process, not make the final hiring decision.
+
+---
+
+# PART F — QUALITY ASSURANCE AND DELIVERY
+
+## 39. REQUIRED TESTING
+
+Create automated tests for:
+
+- Authentication and role permissions.
+- Candidate registration and profile editing.
+- Resume upload and privacy.
+- Job creation and publication.
+- Search filters and Boolean queries.
+- Application submission and duplicate prevention.
+- Recruiter shortlisting.
+- AI question generation and editing.
+- Interview invitation creation.
+- OTP expiry and reuse prevention.
+- Expired and revoked interview links.
+- Candidate/job invitation binding.
+- Microphone and camera permissions.
+- Real-time AI question and answer flow.
+- Question sequencing.
+- Reconnection and resume.
+- Transcript persistence.
+- Recording upload and access control.
+- Interview completion.
+- Recruiter notifications.
+- Review and decision workflow.
+- Payment failure and webhook verification.
+- Admin permissions.
+- Data export and deletion.
+- Responsive layouts.
+- Accessibility.
+- Load and performance.
+- Security and common abuse scenarios.
+
+Create end-to-end tests covering a complete journey from job creation to interview completion and recruiter decision.
+
+Use mocks for external providers in automated tests, but separately perform real integration tests against configured services.
+
+Do not claim a live audio/video integration is verified merely because mocked tests pass.
+
+## 40. DELIVERY DOCUMENTATION
+
+Deliver:
+
+1. Product requirements document.
+2. Architecture document and diagrams.
+3. Database entity relationship diagram.
+4. Role-permission matrix.
+5. API documentation.
+6. Environment variable example file without secrets.
+7. Database migrations.
+8. Test suite and test report.
+9. Provider integration instructions.
+10. Email and OTP configuration guide.
+11. AI voice and speech provider setup.
+12. Real-time interview setup and troubleshooting.
+13. Deployment instructions.
+14. Backup and restore procedure.
+15. Privacy and retention configuration.
+16. Cost and free-tier analysis for external providers.
+17. Known limitations.
+18. Production-readiness checklist.
+19. Module-wise progress report.
+20. Outstanding issues and next steps.
+
+## 41. MANDATORY DEVELOPMENT METHOD
+
+Do not immediately generate hundreds of files without a plan.
+
+First inspect the repository and report:
+
+- Existing framework.
+- Existing components and routes.
+- Current database.
+- Existing authentication.
+- Existing integrations.
+- Existing tests.
+- Existing deployment configuration.
+- Existing features that must be preserved.
+
+Then prepare the implementation plan.
+
+Build in this order:
+
+Phase 1: Architecture, database and authentication.
+
+Phase 2: Candidate profile and resume management.
+
+Phase 3: Company, recruiter and job posting.
+
+Phase 4: Job search and applications.
+
+Phase 5: Recruiter candidate database and ATS.
+
+Phase 6: AI question configuration and versioning.
+
+Phase 7: Interview invitation, email OTP and candidate lobby.
+
+Phase 8: Real-time AI audio/video interview.
+
+Phase 9: Recording, transcription, summary and recruiter review.
+
+Phase 10: Admin, verification, support and moderation.
+
+Phase 11: Payments, subscriptions and usage metering.
+
+Phase 12: Analytics, integrations, accessibility and optimization.
+
+Phase 13: Security audit, regression tests and production deployment.
+
+Each phase must have:
+
+- A clear scope.
+- Defined dependencies.
+- Database changes.
+- UI implementation.
+- Backend implementation.
+- Permissions.
+- Validation.
+- Error and loading states.
+- Automated tests.
+- Manual acceptance tests.
+- Documentation.
+- A completion report.
+
+Do not mark a phase complete when critical tests fail.
+
+Do not replace existing working functionality without inspecting its dependencies and confirming that the replacement works.
+
+If the project is interrupted, preserve progress in a project status document containing completed work, remaining work, current errors, active decisions and exact next steps.
+
+## 42. DEFINITION OF DONE
+
+A feature is complete only when:
+
+- Its UI works.
+- Its backend works.
+- Its database integration works.
+- Permissions are enforced.
+- Inputs are validated.
+- Errors are handled.
+- Loading and empty states are implemented.
+- Notifications work where applicable.
+- Automated tests pass.
+- Integration tests are performed where required.
+- Sensitive data is protected.
+- Documentation is updated.
+
+For the AI interview feature, the final acceptance test must prove:
+
+1. Recruiter creates a job.
+2. AI generates ten relevant question suggestions.
+3. Recruiter edits and approves the questions.
+4. Candidate is selected from an authorized source.
+5. Invitation email is delivered.
+6. Candidate verifies email OTP.
+7. Candidate completes the pre-interview checks and consent.
+8. AI speaks each approved question.
+9. Candidate answers using live audio.
+10. Video is captured when video mode and recording are enabled.
+11. Answers and transcripts are persisted.
+12. The interview survives a recoverable interruption.
+13. The final answer and recording processing complete.
+14. Recruiter receives a completion notification.
+15. Recruiter reviews the transcript and available recording.
+16. Recruiter chooses the next ATS stage.
+17. The candidate status and audit history update correctly.
+18. Unauthorized users cannot access the interview or its media.
+
+## 43. FIRST RESPONSE REQUIRED FROM THE AGENT
+
+Before coding, provide:
+
+A. Repository inspection report.
+B. Complete architecture proposal.
+C. Product module inventory.
+D. User-role and permission matrix.
+E. Database schema and relationships.
+F. AI interview state machine.
+G. End-to-end interview sequence diagram.
+H. External provider comparison with actual capabilities, costs and setup requirements.
+I. Implementation phases and dependencies.
+J. Security and privacy risk assessment.
+K. Testing strategy.
+L. Deployment plan.
+M. List of decisions requiring my approval.
+
+After presenting this plan, begin implementation phase by phase. Do not wait for approval for every minor implementation decision; use sensible documented defaults. Ask me only when a genuinely blocking product, legal, cost or provider decision is required.
+
+The objective is a reliable, maintainable, original job portal with a fully integrated AI live interview system—not merely a visually impressive prototype.

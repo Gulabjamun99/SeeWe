@@ -1,0 +1,510 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+:root {
+  color-scheme: light;
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.546 0.245 262.881); /* SeeWe brand blue-600 */
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.588 0.134 241.754); /* SeeWe brand sky-600 */
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.685 0.169 237.323); /* sky-500 */
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+  /* recharts chart palette (dark-mode aware) */
+  --chart-grid: #f1f5f9;
+  --chart-tick: #64748b;
+  --chart-tick-soft: #94a3b8;
+  --chart-tooltip-bg: #ffffff;
+  --chart-tooltip-border: #e2e8f0;
+  --chart-tooltip-text: #0f172a;
+}
+
+/*
+ * SeeWe dark theme — blue-tinted “midnight” palette (Task 2-b).
+ *
+ * Strategy: semantic tokens below carry the chrome (shadcn primitives, body,
+ * dialogs, toasts…), while the Tailwind palette-variable overrides further down
+ * re-map the app's many hardcoded light-only utilities (bg-blue-50,
+ * text-slate-700, border-amber-200 …) to dark equivalents at the CSS-variable
+ * level — Tailwind v4 utilities compile to `var(--color-*)`, so overriding the
+ * variable (scoped to `.dark` only) re-themes every variant (opacity mixes,
+ * gradients, rings, shadows) in one place. Light mode is untouched: every
+ * override lives inside `.dark`.
+ *
+ * Shades that are already dark-native (slate-800/900/950 surfaces, text-white,
+ * text-slate-100/200/300, solid blue-500/600 buttons, gradient stops) are
+ * deliberately NOT overridden, so white-on-blue CTAs and camera-room tiles
+ * keep working in both modes.
+ */
+.dark {
+  color-scheme: dark;
+
+  --background: oklch(0.17 0.024 259); /* deep blue-slate, ~#0c1523 */
+  --foreground: oklch(0.93 0.014 247);
+  --card: oklch(0.212 0.027 258);
+  --card-foreground: oklch(0.93 0.014 247);
+  --popover: oklch(0.222 0.028 258);
+  --popover-foreground: oklch(0.93 0.014 247);
+  --primary: oklch(0.546 0.245 262.881); /* brand blue-600 — identical to light for consistent CTAs */
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.28 0.03 257);
+  --secondary-foreground: oklch(0.93 0.014 247);
+  --muted: oklch(0.26 0.028 258);
+  --muted-foreground: oklch(0.72 0.025 252);
+  --accent: oklch(0.3 0.035 255);
+  --accent-foreground: oklch(0.93 0.014 247);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 11%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.685 0.169 237.323); /* brand sky-500 */
+  --chart-1: oklch(0.71 0.14 250);
+  --chart-2: oklch(0.746 0.16 232.661);
+  --chart-3: oklch(0.8 0.13 85);
+  --chart-4: oklch(0.74 0.14 165);
+  --chart-5: oklch(0.71 0.17 15);
+  --sidebar: oklch(0.212 0.027 258);
+  --sidebar-foreground: oklch(0.93 0.014 247);
+  --sidebar-primary: oklch(0.62 0.17 250);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.3 0.035 255);
+  --sidebar-accent-foreground: oklch(0.93 0.014 247);
+  --sidebar-border: oklch(1 0 0 / 11%);
+  --sidebar-ring: oklch(0.685 0.169 237.323);
+
+  /* ---- Tailwind palette re-mapping (dark equivalents of light-only shades) ---- */
+
+  /* slate ramp: washes become blue-tinted dark panels; 800/900/950 & 400/500 untouched */
+  --color-slate-50: oklch(0.265 0.026 258);
+  --color-slate-100: oklch(0.24 0.024 258);
+  --color-slate-200: oklch(0.3 0.028 258);
+  --color-slate-300: oklch(0.37 0.032 258);
+  --color-slate-600: oklch(0.7 0.026 252);
+
+  /* brand blue washes; solid 400–700 untouched; 800/900 remapped for chip text */
+  --color-blue-50: oklch(0.28 0.052 252);
+  --color-blue-100: oklch(0.315 0.062 252);
+  --color-blue-200: oklch(0.38 0.072 252);
+  --color-blue-800: oklch(0.78 0.1 247);
+  --color-blue-900: oklch(0.83 0.085 247);
+
+  /* sky washes; 500/600/700 (buttons & gradient stops) untouched */
+  --color-sky-50: oklch(0.29 0.045 242);
+  --color-sky-100: oklch(0.325 0.055 242);
+  --color-sky-200: oklch(0.39 0.065 242);
+  --color-sky-800: oklch(0.82 0.09 235);
+
+  /* amber status washes: dark amber panels + bright amber text */
+  --color-amber-50: oklch(0.28 0.04 82);
+  --color-amber-100: oklch(0.315 0.05 82);
+  --color-amber-200: oklch(0.4 0.06 80);
+  --color-amber-300: oklch(0.47 0.075 78);
+  --color-amber-600: oklch(0.83 0.12 84);
+  --color-amber-700: oklch(0.8 0.125 82);
+  --color-amber-800: oklch(0.84 0.115 84);
+
+  /* rose status washes; 600/700 kept (solid buttons + hover stops) */
+  --color-rose-50: oklch(0.28 0.045 15);
+  --color-rose-100: oklch(0.315 0.055 15);
+  --color-rose-200: oklch(0.39 0.065 15);
+  --color-rose-800: oklch(0.83 0.1 15);
+
+  /* cyan / lime / violet accents */
+  --color-cyan-50: oklch(0.29 0.04 225);
+  --color-cyan-100: oklch(0.325 0.05 225);
+  --color-cyan-600: oklch(0.78 0.09 218);
+  --color-cyan-700: oklch(0.8 0.09 218);
+  --color-cyan-800: oklch(0.84 0.08 218);
+  --color-lime-100: oklch(0.3 0.
+/* dark chart palette overrides */
+.dark {
+  --chart-grid: #2c3a52;
+  --chart-tick: #94a3b8;
+  --chart-tick-soft: #64748b;
+  --chart-tooltip-bg: #1e2a3f;
+  --chart-tooltip-border: rgba(255, 255, 255, 0.14);
+  --chart-tooltip-text: #e2e8f0;
+}
+05 135);
+  --color-lime-700: oklch(0.79 0.14 132);
+  --color-lime-800: oklch(0.83 0.13 132);
+  --color-violet-50: oklch(0.29 0.045 305);
+  --color-violet-100: oklch(0.33 0.055 305);
+  --color-violet-600: oklch(0.76 0.11 305);
+}
+
+/*
+ * Class-level dark fixes for utilities that share a variable with an
+ * intentionally-kept shade (e.g. text-blue-600 vs solid bg-blue-600 buttons,
+ * text-white vs bg-white surfaces) or that compile to literals.
+ * Specificity (0,2,0) beats the base utilities; :hover / .group rules keep
+ * hover affordances alive over the overridden bases.
+ */
+@layer utilities {
+  /* white surfaces → card */
+  .dark .bg-white {
+    background-color: var(--card);
+  }
+  .dark .bg-white\/90 {
+    background-color: color-mix(in oklab, var(--card) 90%, transparent);
+  }
+  .dark .bg-white\/85 {
+    background-color: color-mix(in oklab, var(--card) 85%, transparent);
+  }
+  .dark .bg-white\/80 {
+    background-color: color-mix(in oklab, var(--card) 80%, transparent);
+  }
+  .dark .bg-white\/70 {
+    background-color: color-mix(in oklab, var(--card) 70%, transparent);
+  }
+  .dark .bg-white\/60 {
+    background-color: color-mix(in oklab, var(--card) 60%, transparent);
+  }
+  .dark .bg-white\/50 {
+    background-color: color-mix(in oklab, var(--card) 50%, transparent);
+  }
+  .dark .from-white {
+    --tw-gradient-from: var(--card);
+  }
+  .dark .via-white {
+    --tw-gradient-via: var(--card);
+  }
+  .dark .to-white {
+    --tw-gradient-to: var(--card);
+  }
+  .dark .ring-offset-white,
+  .dark .ring-offset-slate-50 {
+    --tw-ring-offset-color: var(--card);
+  }
+  .dark .ring-slate-900\/10 {
+    --tw-ring-color: oklch(1 0 0 / 14%);
+  }
+
+  /* strong slate text (900/800/700 share vars with kept dark surfaces) */
+  .dark .text-slate-900 {
+    color: var(--foreground);
+  }
+  .dark .text-slate-800 {
+    color: oklch(0.87 0.016 252);
+  }
+  .dark .text-slate-700 {
+    color: oklch(0.8 0.022 252);
+  }
+
+  /* brand text on dark washes (500/600/700 share vars with solid buttons) */
+  .dark .text-blue-500 {
+    color: oklch(0.71 0.128 247);
+  }
+  .dark .text-blue-600 {
+    color: oklch(0.75 0.12 247);
+  }
+  .dark .text-blue-700 {
+    color: oklch(0.79 0.11 247);
+  }
+  .dark .hover\:text-blue-600:hover {
+    color: oklch(0.79 0.11 247);
+  }
+  .dark .hover\:text-blue-700:hover,
+  .dark .hover\:text-blue-800:hover {
+    color: oklch(0.83 0.095 247);
+  }
+  .dark .group:hover .group-hover\:text-blue-700 {
+    color: oklch(0.83 0.095 247);
+  }
+  .dark .text-sky-500,
+  .dark .text-sky-600 {
+    color: oklch(0.79 0.1 235);
+  }
+  .dark .text-sky-700 {
+    color: oklch(0.82 0.09 235);
+  }
+  .dark .text-rose-500 {
+    color: oklch(0.73 0.125 17);
+  }
+  .dark .text-rose-600 {
+    color: oklch(0.77 0.115 17);
+  }
+  .dark .text-rose-700,
+  .dark .focus\:text-rose-700 {
+    color: oklch(0.81 0.105 17);
+  }
+  .dark .hover\:text-rose-600:hover {
+    color: oklch(0.81 0.105 17);
+  }
+
+  /* 300-shade borders share vars with light-blue texts on gradients → class-level */
+  .dark .border-blue-300 {
+    border-color: oklch(0.42 0.075 250);
+  }
+  .dark .border-sky-300 {
+    border-color: oklch(0.42 0.065 242);
+  }
+  .dark .border-rose-300 {
+    border-color: oklch(0.4 0.06 17);
+  }
+
+  /* light-blue texts on gradient banners / camera tiles — restore light */
+  .dark .text-blue-50\/95 {
+    color: oklch(0.95 0.02 240 / 0.95);
+  }
+  .dark .text-blue-50\/90 {
+    color: oklch(0.95 0.02 240 / 0.9);
+  }
+  .dark .text-blue-100\/90 {
+    color: oklch(0.9 0.04 240 / 0.9);
+  }
+  .dark .text-blue-100\/80 {
+    color: oklch(0.9 0.04 240 / 0.8);
+  }
+  .dark .text-blue-200\/70 {
+    color: oklch(0.85 0.06 240 / 0.7);
+  }
+  .dark .group:hover .group-hover\:text-blue-100 {
+    color: oklch(0.9 0.05 240);
+  }
+
+  /* keep hovers alive over overridden white/slate bases */
+  .dark .hover\:bg-slate-50:hover {
+    background-color: var(--color-slate-50);
+  }
+  .dark .hover\:bg-slate-100:hover {
+    background-color: var(--color-slate-100);
+  }
+  .dark .hover\:bg-blue-50:hover {
+    background-color: var(--color-blue-50);
+  }
+  .dark .hover\:bg-blue-50\/30:hover {
+    background-color: color-mix(in oklab, var(--color-blue-50) 30%, transparent);
+  }
+  .dark .hover\:bg-blue-50\/40:hover {
+    background-color: color-mix(in oklab, var(--color-blue-50) 40%, transparent);
+  }
+  .dark .hover\:bg-blue-50\/60:hover {
+    background-color: color-mix(in oklab, var(--color-blue-50) 60%, transparent);
+  }
+  .dark .hover\:bg-blue-50\/70:hover {
+    background-color: color-mix(in oklab, var(--color-blue-50) 70%, transparent);
+  }
+  .dark .hover\:bg-blue-100:hover {
+    background-color: var(--color-blue-100);
+  }
+  .dark .hover\:bg-rose-50:hover {
+    background-color: var(--color-rose-50);
+  }
+  .dark .hover\:bg-rose-100:hover {
+    background-color: var(--color-rose-100);
+  }
+  .dark .hover\:bg-amber-100:hover {
+    background-color: var(--color-amber-100);
+  }
+  .dark .focus\:bg-rose-50 {
+    background-color: var(--color-rose-50);
+  }
+  .dark .hover\:text-slate-600:hover {
+    color: oklch(0.7 0.026 252);
+  }
+  .dark .hover\:text-slate-700:hover {
+    color: oklch(0.8 0.022 252);
+  }
+  .dark .hover\:text-slate-800:hover {
+    color: oklch(0.87 0.016 252);
+  }
+  .dark .hover\:text-slate-900:hover {
+    color: var(--foreground);
+  }
+  .dark .hover\:text-slate-400:hover {
+    color: oklch(0.66 0.024 253);
+  }
+}
+
+/* ---------- Dark-mode polish (selection, scrollbars, Recharts) ---------- */
+.dark ::selection {
+  background-color: oklch(0.685 0.169 237.323 / 0.4);
+  color: oklch(0.98 0.005 240);
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: oklch(0.36 0.03 258);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.48 0.035 258);
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+.dark * {
+  scrollbar-color: oklch(0.38 0.03 258) transparent;
+}
+.dark .hover-lift:hover {
+  box-shadow: 0 10px 24px -8px oklch(0 0 0 / 0.55);
+}
+/* Recharts renders SVG presentation attributes (hex fills) that CSS beats —
+   re-ink grid lines & axis text for dark without touching the light hexes */
+.dark .recharts-cartesian-grid line {
+  stroke: oklch(1 0 0 / 0.09);
+}
+.dark .recharts-text {
+  fill: oklch(0.72 0.025 252);
+}
+/* default tooltip carries inline light styles from contentStyle — beat them */
+.dark .recharts-default-tooltip {
+  background-color: var(--popover) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px oklch(0 0 0 / 0.45) !important;
+}
+.dark .recharts-default-tooltip .recharts-tooltip-label,
+.dark .recharts-default-tooltip .recharts-tooltip-item {
+  color: var(--popover-foreground) !important;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---------- SeeWe polish layer ---------- */
+
+  /* Smooth in-page navigation */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Brand selection color */
+  ::selection {
+    background-color: oklch(0.588 0.134 241.754 / 0.28);
+    color: oklch(0.145 0 0);
+  }
+
+  /* Elegant thin scrollbars everywhere (WebKit) */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: oklch(0.87 0 0);
+    border-radius: 8px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: oklch(0.72 0 0);
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  /* Firefox */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: oklch(0.87 0 0) transparent;
+  }
+
+  /* Consistent focus ring for keyboard users */
+  :focus-visible {
+    outline: 2px solid oklch(0.588 0.134 241.754);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* Respect reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* ---------- Recharts polish ---------- */
+.recharts-wrapper {
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+/* ---------- Utility: soft card lift on hover ---------- */
+.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px -8px oklch(0.145 0 0 / 0.12);
+}

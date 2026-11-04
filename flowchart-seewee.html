@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SeeWe AI — Complete Hiring Flow</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: #EEF1F5; color: #243447; padding: 40px 20px;
+  }
+  #root { width: fit-content; min-width: 1180px; max-width: 1280px; margin: 0 auto; }
+
+  /* ── Hero header ── */
+  .hero {
+    background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+    border-radius: 16px; padding: 36px 44px; color: white; margin-bottom: 28px;
+  }
+  .hero h1 { font-size: 27px; font-weight: 800; letter-spacing: -0.3px; margin-bottom: 8px; }
+  .hero p { font-size: 14.5px; color: #94A3B8; max-width: 860px; line-height: 1.6; }
+  .hero .badge {
+    display: inline-block; background: rgba(148,163,184,0.18); color: #CBD5E1;
+    font-size: 12px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase;
+    padding: 5px 14px; border-radius: 20px; margin-bottom: 14px;
+  }
+
+  /* ── Role legend ── */
+  .legend {
+    display: flex; gap: 14px; align-items: center; flex-wrap: wrap;
+    background: white; border: 1px solid #E2E8F0; border-radius: 12px;
+    padding: 14px 22px; margin-bottom: 28px;
+  }
+  .legend-title { font-size: 13px; font-weight: 700; color: #475569; margin-right: 6px; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12.5px; font-weight: 700; padding: 5px 12px; border-radius: 20px;
+    letter-spacing: 0.3px; white-space: nowrap;
+  }
+  .chip .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .chip.recruiter { background: #EFF6FF; color: #1E40AF; border: 1px solid #BFDBFE; }
+  .chip.recruiter .dot { background: #3B82F6; }
+  .chip.candidate { background: #F0FDF4; color: #166534; border: 1px solid #BBF7D0; }
+  .chip.candidate .dot { background: #22C55E; }
+  .chip.ai { background: #F5F3FF; color: #6D28D9; border: 1px solid #DDD6FE; }
+  .chip.ai .dot { background: #8B5CF6; }
+  .chip.client { background: #FFF7ED; color: #9A3412; border: 1px solid #FED7AA; }
+  .chip.client .dot { background: #F97316; }
+  .chip.system { background: #F1F5F9; color: #334155; border: 1px solid #E2E8F0; }
+  .chip.system .dot { background: #64748B; }
+
+  /* ── Phase groups (Scheme B: neutral gray + blue accent, 6 phases) ── */
+  .phase-group {
+    background: #F8FAFC; border-radius: 14px; padding: 22px 26px;
+    border: 1px solid #E8EDF3; margin: 0;
+  }
+  .phase-title {
+    font-size: 17px; font-weight: 800; padding: 12px 18px;
+    border-radius: 9px; margin-bottom: 16px; letter-spacing: 0.2px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  }
+  .phase-title .who { font-size: 12px; font-weight: 700; opacity: 0.75; letter-spacing: 0.8px; text-transform: uppercase; white-space: nowrap; }
+  .phase-steps { display: flex; flex-direction: column; gap: 9px; padding-left: 10px; }
+  .phase-step {
+    font-size: 14.5px; font-weight: 500; color: #243447; line-height: 1.55;
+    padding: 11px 16px; background: white; border-radius: 8px;
+    border: 1px solid #E2E8F0;
+    display: flex; align-items: flex-start; gap: 10px;
+  }
+  .step-num {
+    flex-shrink: 0; width: 24px; height: 24px; line-height: 24px; margin-top: 1px;
+    text-align: center; border-radius: 50%; font-size: 12px; font-weight: 700;
+  }
+  .step-body { flex: 1; min-width: 0; }
+  .step-body b { font-weight: 700; }
+  .step-body .sub { display: block; font-size: 12.5px; font-weight: 400; color: #64748B; margin-top: 3px; line-height: 1.5; }
+  .step-chip { flex-shrink: 0; margin-top: 2px; }
+
+  /* optional / conditional steps */
+  .phase-step.cond { border-style: dashed; border-width: 1.5px; background: #FDFEFF; }
+  .cond-tag {
+    display: inline-block; font-size: 10.5px; font-weight: 800; letter-spacing: 0.6px;
+    padding: 2px 8px; border-radius: 10px; margin-left: 8px; vertical-align: 1px;
+    background: #FEF3C7; color: #92400E; border: 1px solid #FDE68A; text-transform: uppercase;
+  }
+  .priv-tag {
+    display: inline-block; font-size: 10.5px; font-weight: 800; letter-spacing: 0.6px;
+    padding: 2px 8px; border-radius: 10px; margin-left: 8px; vertical-align: 1px;
+    background: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; text-transform: uppercase;
+  }
+
+  /* Scheme B phase colors */
+  .phase-1 .phase-title { background: #F8FAFC; color: #334155; border-left: 4px solid #94A3B8; }
+  .phase-1 .step-num { background: #F1F5F9; color: #475569; }
+  .phase-2 .phase-title { background: #F1F5F9; color: #334155; border-left: 4px solid #7B8FA3; }
+  .phase-2 .step-num { background: #E2E8F0; color: #475569; }
+  .phase-3 .phase-title { background: #E8EDF3; color: #2D4156; border-left: 4px solid #6B809A; }
+  .phase-3 .step-num { background: #DBEAFE; color: #2D4156; }
+  .phase-4 .phase-title { background: #E2E8F0; color: #283C52; border-left: 4px solid #5B7590; }
+  .phase-4 .step-num { background: #D0D9E4; color: #283C52; }
+  .phase-5 .phase-title { background: #DAE1EB; color: #23364D; border-left: 4px solid #4B6A87; }
+  .phase-5 .step-num { background: #C7D2E0; color: #23364D; }
+  .phase-6 .phase-title { background: #D2DAE5; color: #1E3048; border-left: 4px solid #3B5F7D; }
+  .phase-6 .step-num { background: #BFC9D8; color: #1E3048; }
+
+  /* ── Phase-to-phase connector ── */
+  .flow-arrow {
+    display: flex; flex-direction: column; align-items: center;
+    margin: 6px 0; gap: 2px;
+  }
+  .flow-arrow .label {
+    font-size: 12.5px; font-weight: 600; color: #475569;
+    background: white; border: 1px solid #E2E8F0; border-radius: 16px;
+    padding: 4px 16px;
+  }
+  .flow-arrow .arrow { color: #94A3B8; font-size: 22px; line-height: 1; }
+
+  /* ── Privacy / rules footer ── */
+  .rules-box {
+    margin-top: 26px; background: #FFFBEB; border: 1.5px dashed #F59E0B;
+    border-radius: 12px; padding: 18px 24px;
+  }
+  .rules-box h3 { font-size: 14px; font-weight: 800; color: #92400E; margin-bottom: 8px; letter-spacing: 0.4px; }
+  .rules-box ul { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+  .rules-box li { font-size: 13px; color: #78350F; line-height: 1.55; padding-left: 20px; position: relative; }
+  .rules-box li::before { content: "🔒"; position: absolute; left: 0; font-size: 11px; top: 2px; }
+
+  .footnote { margin-top: 16px; text-align: center; font-size: 11.5px; color: #94A3B8; }
+</style>
+</head>
+<body>
+<div id="root">
+
+  <div class="hero">
+    <div class="badge">SeeWe AI Hiring Portal — Master Flow</div>
+    <h1>Kaun kya karega — Step-by-Step Hiring Flow</h1>
+    <p>Recruiter job post karta hai → Candidate apply karta hai → Recruiter shortlist karta hai → Candidate AI Interview deta hai → Recruiter results dekh kar select karta hai. AI Screening har job ke liye OPTIONAL hai — recruiter ka control, har step pe.</p>
+  </div>
+
+  <div class="legend">
+    <span class="legend-title">ROLES:</span>
+    <span class="chip recruiter"><span class="dot"></span>RECRUITER</span>
+    <span class="chip candidate"><span class="dot"></span>CANDIDATE</span>
+    <span class="chip ai"><span class="dot"></span>AI SYSTEM</span>
+    <span class="chip client"><span class="dot"></span>CLIENT</span>
+    <span class="chip system"><span class="dot"></span>SYSTEM / EMAIL</span>
+  </div>
+
+  <!-- ═══════════ PHASE 1 ═══════════ -->
+  <div class="phase-group phase-1">
+    <div class="phase-title"><span>PHASE 1 — Account &amp; Profile Setup</span><span class="who">Recruiter + Candidate</span></div>
+    <div class="phase-steps">
+      <div class="phase-step">
+        <span class="step-num">1</span>
+        <div class="step-body"><b>Recruiter — Sign up / Sign in</b>
+          <span class="sub">Email + password se account banao ya login karo. Role = Recruiter select karo.</span></div>
+        <span class="chip recruiter step-chip"><span class="dot"></span>RECRUITER</span>
+      </div>
+      <div class="phase-step">
+        <span class="step-num">2</span>
+        <div class="step-body"><b>Recruiter profile banao — kabhi bhi editable</b>
+          <span class="sub">Full name, designation, phone, photo. Edit option profile page pe hamesha available.</span></div>
+        <span class="chip recruiter step-chip"><span class="dot"></span>RECRUITER</span>
+      </div>
+      <div class="phase-step">
+        <span class="step-num">3</span>
+        <div class="step-body"><b>Company details complete karo</b>
+          <span class="sub">Company name, logo, industry, company size, website, headquarters, about/description — job post karne se pehle zaroori.</span></div>
+        <span class="chip recruiter step-chip"><span class="dot"></span>RECRUITER</span>
+      </div>
+      <div class="phase-step">
+        <span class="step-num">4</span>
+        <div class="step-body"><b>Candidate — Sign up / Sign in + profile</b>
+          <span class="sub">Resume upload, skills, experience, education, video intro. Profile kahin se bhi edit ho sakta hai.</span></div>
+        <span class="chip candidate step-chip"><span class="dot"></span>CANDIDATE</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="flow-arrow"><span class="label">Account ready → ab job post hoti hai</span><span class="arrow">↓</span></div>
+
+  <!-- ═══════════ PHASE 2 ═══════════ -->
+  <div class="phase-group phase-2">
+    <div class="phase-title"><span>PHASE 2 — Job Post + AI Screening Setup</span><span class="who">Recruiter (full control)</span></div>
+    <div class="phase-steps">
+      <div class="phase-step">
+        <span class="step-num">5</span>
+        <div class="step-body"><b>Recruiter — Job post karo</b>
+          <span class="sub">Job title, JD (description), required skills, location, salary range, experience, openings.</span></div>
+        <span class="chip recruiter step-chip"><span class="dot"></span>RECRUITER</span>
+      </div>
+      <div class="phase-step">
+        <span class="step-num">6</span>
+        <div class="step-body"><b>Job edit / delete — full lifecycle control</b>
+          <span class="sub">Posted job ko edit karo ya delete karo jab bhi chaho — dashboard se directly.</span></div>
+        <span class="chip recruiter step-chip"><span class="dot"></span>RECRUITER</span>
+      </div>
+      <div class="phase-step cond">
+        <span class="step-num">7</span>
+        <div class="step-body"><b>AI Screening toggle — ON karna ya nahi? <span class="cond-tag">Optional</span></b>
+          <span class="sub">Ye har job pe alag decide hota hai. OFF rakho to manual hi screening hogi — AI zaroori nahi hai.</span></div>
+        <span class="chip recruiter step-chip"><span class="dot"></span>RECRUITER</span>
+      </div>
+      <div class="phase-step cond">
+        <span class="step-num">8</span>
+        <div class="step-body"><b>Question Builder — apne questions khud banao <span class="cond-tag">If AI ON</span></b>
+          <span class="sub">Questions add / edit / delete karo. Har question ka answer time set karo (30s / 60s / 2min…). Recruiter ko hi pata hota hai kya puchwana hai.</span></div>
+        <span class="chip recruiter step-chip"><span class="dot"></span>RECRUITER</span>
+      </div>
+      <div class="phase-step cond">
+        <span class="step-num">9</span>
+        <div class="step-body"><b>AI Suggest — JD ke hisaab se max 10 questions <span class="cond-tag">If AI ON</span></b>
+          <span class="sub">AI JD padh kar 10 suggested questions deta hai. Recruiter unhe accept / edit / reject kar sakta hai — final choice recruiter ki.</span></div>
+        <span class="chip ai step-chip"><span class="dot"></span>AI SYSTEM</span>
+      </div>
+      <div class="phase-step cond">
+        <span class="step-num">10</span>
+        <div class="step-body"><b>Har question ka format set karo — Voice ya Text <span class="cond-tag">If AI ON</span></b>
+          <span class="sub">Design time pe recruiter decide karta hai: ye question voice me jawab hoga ya text. Typing sirf tab possible jab recruiter ne us question ke liye enable kiya ho. Voice + text dono ka data record hota hai.</span></div>
+        <span class="chip recruiter step-chip"><span class="dot"></span>RECRUITER</span>
+      </div>
+      <div class="phase-step cond">
+        <span class="step-num">11</span>
+        <div class="step-body"><b>AI Interview skippable? — per job decide karo <span class="cond-tag">Optional</span></b>
+          <span class="sub">Agar ON hai to candidate AI interview skip kar sakta hai. OFF hai to complete karna zaroori.</span></div>
+        <span class="chip recruiter step-chip"><span class="dot"></span>RECRUITER</span>
+      </div>
+      <div class="phase-step">
+        <span class="step-num">12</span>
+        <div class="step-body"><b>Job PUBLISH → live on job board</b>
+          <span class="sub">Job candidates ko browse me dikhne lagti hai.</span></div>
+        <span class="chip recruiter step-chip"><span class="dot"></span>RECRUITER</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="flow-arrow"><span class="label">Job live hai → candidates apply karenge</span><span class="arrow">↓</span></div>
+
+  <!-- ═══════════ PHASE 3 ═══════════ -->
+  <div class="phase-group phase-3">
+    <div class="phase-title"><span>PHASE 3 — Candidate Applies</span><span class="who">Candidate → Recruiter Dashboard</span></div>
+    <div class="phase-steps">
+      <div class="phase-step">
+        <span class="step-num">13</span>
+        <div class="step-body"><b>Candidate — jobs browse karo</b>
+          <span class="sub">Search, filter (skills / location / salary), job details dekho.</span></div>
+        <span class="chip candidate step-chip"><span class="dot"></span>CANDIDATE</span>
+      </div>
+      <div class="phase-step">
+        <span class="step-num">14</span>
+        <div class="step-body"><b>Candidate — apply karo</b>
+          <span class="sub">Resume + video intro ke saath 1-click apply. Application status track karta hai: Applied → Shortlisted → Interview → Offer.</span></div>
+        <span class="chip candidate step-chip"><span class="dot"></span>CANDIDATE</span>
+      </div>
+      <div class="phase-step">
+        <span class="step-num">15</span>
+        <div class="step-body"><b>Recruiter dashboard — Responses section me application aayi</b>
+          <span class="sub">Clean buckets: New / Screening / Interview / Offer — har stage ka count + candidate data ek jagah.</span></div>
+        <span class="chip recruiter step-chip"><span class="dot"></span>RECRUITER</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="flow-arrow"><span class="label">Applications mil gayi → screening &amp; shortlist</span><span class="arrow">↓</span></div>
+
+  <!-- ═══════════ PHASE 4 ═══════════ -->
+  <div class="phase-group phase-4">
+    <div class="phase-title"><span>PHASE 4 — Screening &amp; Shortlist + Email Invite</span><span class="who">AI + Recruiter + Email</span></div>
+    <div class="phase-steps">
+      <div class="phase-step cond">
+        <span class="step-num">16</span>
+        <div class="step-body"><b>AI auto-evaluation (agar AI screening ON hai) <span class="cond-tag">If AI ON</span></b>
+          <span class="sub">AI resume vs JD match evaluate karta hai. Results SIRF recruiter ko dikhte hain — candidate ko AI score kabhi nahi dikhta.</span></div>
+        <span class="chip ai step-chip"><span class="dot"></span>AI SYSTEM</span>
+      </div>
+      <div class="phase-step">
+        <span class="step-num">17</span>
+        <div class="step-body"><b>Recruiter — candidates review karke shortlist karo</b>
+          <span class="sub">Profile, resume, video intro dekho. Shortlist / reject decision recruiter ka — AI sirf helper hai.</span></div>
+        <span class="chip recruiter step-chip"><span class="dot"></span>RECRUITER</span>
+      </div>
+      <div class="phase-step">
+        <span class="step-num">18</span>
+        <div class="step-body"><b>System — shortlisted candidate ko interview invite EMAIL jaata hai</b>
+          <span class="sub">Email me interview link + details. Candidate ko pata chal jaata hai ki wo AI interview de sakta hai.</span></div>
+        <span class="chip system step-chip"><span class="dot"></span>SYSTEM / EMAIL</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="flow-arrow"><span class="label">Invite mila → candidate AI interview dega</span><span class="arrow">↓</span></div>
+
+  <!-- ═══════════ PHASE 5 ═══════════ -->
+  <div class="phase-group phase-5">
+    <div class="phase-title"><span>PHASE 5 — AI Interview (Candidate deta hai)</span><span class="who">Candidate + AI Voice</span></div>
+    <div class="phase-steps">
+      <div class="phase-step">
+        <span class="step-num">19</span>
+        <div class="step-body"><b>Candidate — email link se AI Interview open karo</b>
+          <span class="sub">Sirf shortlisted candidates hi interview de sakte hain. Interviewer/recruiter khud interview NAHI deta — wo sirf questions set karta hai.</span></div>
+        <span class="chip candidate step-chip"><span class="dot"></span>CANDIDATE</span>
+      </div>
+      <div class="phase-step">
+        <span class="step-num">20</span>
+        <div class="step-body"><b>AI interviewer questions puchta hai</b>
+          <span class="sub">Indian male voice, slow &amp; clear speed — taaki candidate aaram se samajh sake. Questions wahi jo recruiter ne set kiye (ya AI-suggest accept kiye).</span></div>
+        <span class="chip ai step-chip"><span class="dot"></span>AI SYSTEM</span>
+      </div>
+      <div class="phase-step">
+        <span class="step-num">21</span>
+        <div class="step-body"><b>Candidate — har question ka jawab set format me</b>
+          <span class="sub">Voice answer ya text answer — jo recruiter ne us question ke liye chuna. Typing option locked rehta hai jab tak recruiter ne enable na kiya ho. Answer time limit bhi recruiter wali hi.</span></div>
+        <span class="chip candidate step-chip"><span class="dot"></span>CANDIDATE</span>
+      </div>
+      <div class="phase-step cond">
+        <span class="step-num">22</span>
+        <div class="step-body"><b>Candidate — AI interview SKIP (agar allowed hai) <span class="cond-tag">If Skippable ON</span></b>
+          <span class="sub">Recruiter ne us job pe skip allow kiya to candidate directly aage badh sakta hai.</span></div>
+        <span class="chip candidate step-chip"><span class="dot"></span>CANDIDATE</span>
+      </div>
+      <div class="phase-step">
+        <span class="step-num">23</span>
+        <div class="step-body"><b>AI — answers evaluate karta hai (voice + text dono record)</b>
+          <span class="sub">Results SIRF recruiter ko dikhte hain. <span class="priv-tag">Candidate ko score kabhi nahi dikhta</span> — mock interview practice data bhi recruiter/client ko kabhi nahi jaata.</span></div>
+        <span class="chip ai step-chip"><span class="dot"></span>AI SYSTEM</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="flow-arrow"><span class="label">Results ready → final selection &amp; closing</span><span class="arrow">↓</span></div>
+
+  <!-- ═══════════ PHASE 6 ═══════════ -->
+  <div class="phase-group phase-6">
+    <div class="phase-title"><span>PHASE 6 — Selection → Offer → Onboarding</span><span class="who">Recruiter + Client + Candidate</span></div>
+    <div class="phase-steps">
+      <div class="phase-step">
+        <span class="step-num">24</span>
+        <div class="step-body"><b>Recruiter — AI results dekho, next stage move karo</b>
+          <span class="sub">Interview → Offer stage. Email notifications har stage pe candidate ko jaate hain.</span></div>
+        <span class="chip recruiter step-chip"><span class="dot"></span>RECRUITER</span>
+      </div>
+      <div class="phase-step">
+        <span class="step-num">25</span>
+        <div class="step-body"><b>Client — candidate reports dekho</b>
+          <span class="sub">Recruiter client ko shortlisted candidates ki reports share karta hai. Client ko bhi candidate ke AI scores ke sensitive details nahi dikhti.</span></div>
+        <span class="chip client step-chip"><span class="dot"></span>CLIENT</span>
+      </div>
+      <div class="phase-step">
+        <span class="step-num">26</span>
+        <div class="step-body"><b>Offer accept → Onboarding start</b>
+          <span class="sub">Candidate offer accept karta hai, onboarding checklist chalti hai.</span></div>
+        <span class="chip recruiter step-chip"><span class="dot"></span>RECRUITER</span>
+      </div>
+      <div class="phase-step">
+        <span class="step-num">27</span>
+        <div class="step-body"><b>Candidate — apna status track karo</b>
+          <span class="sub">Applied → Shortlisted → Interview → Offer — dashboard me live status. Sirf apna status dikhta hai, AI internal score nahi.</span></div>
+        <span class="chip candidate step-chip"><span class="dot"></span>CANDIDATE</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ RULES ═══════════ -->
+  <div class="rules-box">
+    <h3>PRIVACY &amp; CONTROL RULES (har phase pe applicable)</h3>
+    <ul>
+      <li>Candidate ko AI score / verdict / screening dossier KABHI nahi dikhta — sirf recruiter dekhta hai.</li>
+      <li>Mock interview (practice) ka data recruiter ya client ko kabhi nahi jaata — wo sirf candidate ka personal practice hai.</li>
+      <li>AI Screening har job pe OPTIONAL hai — ON/OFF recruiter decide karta hai, per job.</li>
+      <li>Typing (text answer) sirf tab available jab recruiter ne us question ke liye enable kiya ho.</li>
+      <li>AI Interview per job posting skippable ho sakta hai — recruiter ka setting.</li>
+      <li>AI voice = Indian male, slow speed — clear samajh aana zaroori hai.</li>
+    </ul>
+  </div>
+
+  <div class="footnote">SeeWe AI — End-to-End Hiring Flow · Recruiter / Candidate / AI / Client roles · AI Screening optional per job</div>
+</div>
+</body>
+</html>
