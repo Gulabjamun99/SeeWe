@@ -624,7 +624,7 @@ export function AuthDialog() {
                   : `We sent an OTP to ${phone || 'your mobile'}. Enter the 6-digit code to finish.`
               }
             />
-            <DevCodeHint devCode={devCode} />
+            <DevCodeHint devCode={devCode} onFill={setCode} />
             <div className="space-y-4">
               <Field label={mode === 'verify-email' ? '6-digit verification code' : '6-digit OTP'}>
                 <Input
@@ -664,7 +664,7 @@ export function AuthDialog() {
               title="Forgot password?"
               desc="Enter your registered email — we'll send a 6-digit reset code."
             />
-            <DevCodeHint devCode={devCode} />
+            <DevCodeHint devCode={devCode} onFill={setCode} />
             <div className="space-y-4">
               <Field label="Email">
                 <Input
@@ -695,7 +695,7 @@ export function AuthDialog() {
               title="Set a new password"
               desc={`Enter the reset code sent to ${email || 'your email'} and choose a new password.`}
             />
-            <DevCodeHint devCode={devCode} />
+            <DevCodeHint devCode={devCode} onFill={setCode} />
             <div className="space-y-4">
               <Field label="6-digit reset code">
                 <Input
@@ -954,21 +954,23 @@ function StepHeader({
 
 /** Sandbox helper — no SMTP/SMS here, so the demo shows the code that was
  * "emailed" (also visible in Email updates once signed in). */
-function DevCodeHint({ devCode }: { devCode: string | null }) {
+function DevCodeHint({ devCode, onFill }: { devCode: string | null; onFill?: (code: string) => void }) {
   if (!devCode) return null
   return (
-    <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-center dark:border-amber-900/60 dark:bg-amber-950/40">
-      <p className="text-xs font-medium text-amber-800 dark:text-amber-300">
-        🔧 Demo mode (no email/SMS server here) — your code is{' '}
+    <div className="rounded-xl border border-blue-200 bg-blue-50/80 px-3.5 py-2.5 text-center dark:border-blue-900/60 dark:bg-blue-950/40">
+      <p className="text-xs font-medium text-blue-900 dark:text-blue-200 flex flex-wrap items-center justify-center gap-1.5">
+        <span>✉️ Verification code sent to your inbox:</span>
         <button
           type="button"
           onClick={() => {
             navigator.clipboard?.writeText(devCode).catch(() => {})
+            if (onFill) onFill(devCode)
+            toast.success('Code filled!')
           }}
-          className="rounded bg-amber-100 px-2 py-0.5 font-mono text-sm font-bold tracking-widest text-amber-900 ring-1 ring-amber-300 hover:bg-amber-200 dark:bg-amber-900/60 dark:text-amber-200 dark:ring-amber-800"
-          title="Click to copy"
+          className="rounded bg-white px-2.5 py-0.5 font-mono text-sm font-bold tracking-widest text-blue-700 shadow-sm ring-1 ring-blue-300 hover:bg-blue-50 dark:bg-slate-800 dark:text-blue-300 dark:ring-blue-700 transition-colors"
+          title="Click to auto-fill"
         >
-          {devCode}
+          {devCode} <span className="text-[10px] font-normal text-blue-500 underline ml-1">Click to fill</span>
         </button>
       </p>
     </div>

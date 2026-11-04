@@ -173,7 +173,7 @@ export async function checkChallenge(
 
 /* ------------------------- simulated delivery ------------------------- */
 
-/** Record the auth email in the auditable outbox (EmailLog). */
+/** Send real email via Resend API if RESEND_API_KEY is configured, and record in EmailLog. */
 export async function sendAuthEmail(opts: {
   to: string
   toUserId?: string | null
@@ -181,6 +181,33 @@ export async function sendAuthEmail(opts: {
   body: string
   kind: string
 }): Promise<void> {
+  // 1. Dispatch real live email to candidate inbox if RESEND_API_KEY is configured
+  if (process.env.RESEND_API_KEY) {
+    try {
+      const res = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: process.env.EMAIL_FROM || 'SeeWe <onboarding@resend.dev>',
+          to: [opts.to],
+          subject: opts.subject,
+          text: opts.body,
+        }),
+      })
+      if (!res.ok) {
+        console.warn('[auth] Resend email dispatch failed:', await res.text())
+      } else {
+        console.log(`[auth] Real email successfully delivered to ${opts.to}`)
+      }
+    } catch (sendErr) {
+      console.error('[auth] Failed to send real email via Resend:', sendErr)
+    }
+  }
+
+  // 2. Persist to EmailLog outbox table for audit
   try {
     await db.emailLog.create({
       data: {
