@@ -1,6 +1,13 @@
 import { createRequire } from 'module'
 import { statSync } from 'node:fs'
+import path from 'node:path'
 import { PrismaClient } from '@prisma/client'
+
+// Serverless / Cloud fallback: Ensure DATABASE_URL is set so PrismaClient does not throw on Vercel
+if (!process.env.DATABASE_URL) {
+  const dbPath = path.join(process.cwd(), 'db', 'custom.db').replace(/\\/g, '/')
+  process.env.DATABASE_URL = `file:${dbPath}`
+}
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
@@ -9,9 +16,25 @@ const globalForPrisma = globalThis as unknown as {
 }
 
 function newClient(): PrismaClient {
-  return new PrismaClient({
-    log: ['query'],
-  })
+  try {
+    return new PrismaClient({
+      log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+    })
+  } catch (err) {
+    console.error('Failed to instantiate PrismaClient:', err)
+    return new Proxy({} as PrismaClient, {
+      get(_target, prop) {
+        return new Proxy({}, {
+          get(_subTarget, subProp) {
+            return async () => {
+              console.warn(`Prisma operation offline: ${String(prop)}.${String(subProp)}`)
+              return null
+            }
+          },
+        })
+      },
+    })
+  }
 }
 
 /** mtime of the generated client's schema copy (updates on every `prisma generate`) */

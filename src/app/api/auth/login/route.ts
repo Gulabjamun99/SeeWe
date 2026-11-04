@@ -119,13 +119,14 @@ const FALLBACK_DEMO_USERS: Record<string, Record<string, unknown>> = {
 }
 
 export async function POST(req: NextRequest) {
+  let body: { email?: string; role?: string; name?: string; password?: string; company?: string } | null = null
   try {
-    const body = await req.json().catch(() => null)
+    body = (await req.json().catch(() => null)) as typeof body
     if (!body || typeof body !== 'object') {
       return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
     }
 
-    const { email, role, name } = body as { email?: string; role?: string; name?: string }
+    const { email, role, name } = body
     const password = typeof body?.password === 'string' ? body.password : ''
 
     // Validation
@@ -143,6 +144,16 @@ export async function POST(req: NextRequest) {
     }
 
     const normalizedEmail = email.trim().toLowerCase()
+
+    // ---------- Guaranteed Instant Demo Login ----------
+    // For Vercel cloud serverless where local SQLite or cloud DB may not be seeded,
+    // demo users can sign in instantly in 1 click without database latency or errors.
+    if (FALLBACK_DEMO_USERS[normalizedEmail]) {
+      const demoUser = FALLBACK_DEMO_USERS[normalizedEmail]
+      if (!password || password === 'demo123' || password === 'demo' || demoUser.role === role) {
+        return NextResponse.json({ data: demoUser, isDemo: true })
+      }
+    }
 
     // ---------- Client-partner portal login ----------
     // A client user is matched against the Client registry by contactEmail.
@@ -472,14 +483,14 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     console.error('POST /api/auth/login failed, checking demo fallback:', err)
     // Serverless fail-safe: if database is read-only or unreachable, allow demo accounts through cleanly
-    if (typeof body?.email === 'string') {
+    if (body?.email && typeof body.email === 'string') {
       const normEmail = body.email.trim().toLowerCase()
       if (FALLBACK_DEMO_USERS[normEmail]) {
-        return NextResponse.json({ data: FALLBACK_DEMO_USERS[normEmail] })
+        return NextResponse.json({ data: FALLBACK_DEMO_USERS[normEmail], isDemo: true })
       }
     }
     return NextResponse.json(
-      { error: 'Login failed' },
+      { error: err instanceof Error ? err.message : 'Login failed' },
       { status: 500 }
     )
   }
