@@ -217,6 +217,20 @@ export function Footer() {
                 {label}
               </button>
             ))}
+            <button
+              type="button"
+              onClick={() => {
+                if (user?.role === 'ADMIN') {
+                  setView('admin')
+                } else {
+                  window.dispatchEvent(new CustomEvent('seewee:open-admin-auth'))
+                }
+              }}
+              className="inline-flex items-center gap-1 text-slate-400 dark:text-slate-500 transition-colors hover:text-slate-700 dark:hover:text-slate-300"
+              title="Platform Console"
+            >
+              <ShieldCheck className="h-3 w-3" /> Staff Console
+            </button>
           </nav>
           <p className="flex items-center gap-1.5 text-xs text-slate-400 dark:text-slate-500">
             Made with 💙 in India · Interviews conducted by{' '}

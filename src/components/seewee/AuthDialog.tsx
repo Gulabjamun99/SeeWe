@@ -48,7 +48,7 @@ import {
   UserRound,
 } from 'lucide-react'
 
-const DEMO_ACCOUNTS: {
+const PUBLIC_DEMO_ACCOUNTS: {
   email: string
   name: string
   role: Role
@@ -57,8 +57,14 @@ const DEMO_ACCOUNTS: {
   { email: 'ananya@technova.com', name: 'Ananya Sharma', role: 'RECRUITER', hint: 'Recruiter · TechNova' },
   { email: 'arjun.mehta@gmail.com', name: 'Arjun Mehta', role: 'CANDIDATE', hint: 'Candidate · React Dev' },
   { email: 'partnerships@flipkart-demo.com', name: 'Flipkart Internet Pvt Ltd', role: 'CLIENT', hint: 'Client · Flipkart' },
-  { email: 'admin@seewee.ai', name: 'SeeWe Admin', role: 'ADMIN', hint: 'Admin · Platform console' },
 ]
+
+const ADMIN_DEMO_ACCOUNT = {
+  email: 'admin@seewee.ai',
+  name: 'SeeWe Admin',
+  role: 'ADMIN' as Role,
+  hint: 'Admin · Platform console',
+}
 
 type Mode = 'signin' | 'signup' | 'verify-email' | 'verify-phone' | 'forgot' | 'reset'
 
@@ -99,6 +105,18 @@ export function AuthDialog() {
       codeRef.current.focus()
     }
   }, [mode])
+
+  // Dedicated Platform Admin Console trigger (opened via discrete Staff Console in footer)
+  useEffect(() => {
+    const handleAdminOpen = () => {
+      setRole('ADMIN')
+      setMode('signin')
+      setEmail('admin@seewee.ai')
+      setOpen(true)
+    }
+    window.addEventListener('seewee:open-admin-auth', handleAdminOpen)
+    return () => window.removeEventListener('seewee:open-admin-auth', handleAdminOpen)
+  }, [setOpen])
 
   function resetFields(keepEmail = false) {
     if (!keepEmail) setEmail('')
@@ -348,7 +366,7 @@ export function AuthDialog() {
     }
   }
 
-  async function handleQuickDemoLogin(acc: (typeof DEMO_ACCOUNTS)[number]) {
+  async function handleQuickDemoLogin(acc: { email: string; name: string; role: Role }) {
     setRole(acc.role)
     setEmail(acc.email)
     setName(acc.name)
@@ -485,7 +503,7 @@ export function AuthDialog() {
               />
             )}
 
-            <DemoAccounts onPick={handleQuickDemoLogin} />
+            <DemoAccounts role={role} onPick={handleQuickDemoLogin} />
           </>
         )}
 
@@ -729,14 +747,31 @@ export function AuthDialog() {
 /* ---------------------------- shared pieces ---------------------------- */
 
 function RoleSwitch({ role, setRole }: { role: Role; setRole: (r: Role) => void }) {
+  if (role === 'ADMIN') {
+    return (
+      <div className="flex items-center justify-between rounded-xl border border-slate-700 bg-slate-900 px-3.5 py-2.5 text-white shadow-sm">
+        <div className="flex items-center gap-2 text-xs font-semibold">
+          <ShieldCheck className="h-4 w-4 text-sky-400" />
+          <span>Platform Administrator Console</span>
+        </div>
+        <button
+          type="button"
+          onClick={() => setRole('CANDIDATE')}
+          className="text-[11px] text-slate-400 hover:text-white underline underline-offset-2"
+        >
+          Back to Public Login
+        </button>
+      </div>
+    )
+  }
+
   return (
-    <div role="radiogroup" aria-label="Account type" className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+    <div role="radiogroup" aria-label="Account type" className="grid grid-cols-3 gap-2">
       {(
         [
           { value: 'CANDIDATE', label: 'Job Seeker', icon: UserRound },
           { value: 'RECRUITER', label: 'Recruiter', icon: Building2 },
-          { value: 'CLIENT', label: 'Client', icon: Handshake },
-          { value: 'ADMIN', label: 'Admin', icon: ShieldCheck },
+          { value: 'CLIENT', label: 'Client Partner', icon: Handshake },
         ] as const
       ).map(({ value, label, icon: Icon }) => (
         <button
@@ -788,7 +823,7 @@ function DemoRoleFields({
         <Field label="Company name *">
           <Input value={company} onChange={(e) => setCompany(e.target.value)} placeholder="e.g. TechNova Solutions" />
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            You hire as part of this company — its jobs, applicants and AI reports stay in one workspace.
+            Sign in as a recruiter / hiring manager under this client company workspace.
           </p>
         </Field>
       )}
@@ -799,12 +834,12 @@ function DemoRoleFields({
       )}
       {role === 'CLIENT' && (
         <p className="text-xs text-slate-500 dark:text-slate-400">
-          Client access is matched to the email your recruiter registered — the organisation name is filled automatically.
+          Client organization portal — review AI shortlisted candidates, approve hiring decisions, and manage company requisitions.
         </p>
       )}
       {role === 'ADMIN' && (
         <p className="text-xs text-slate-500 dark:text-slate-400">
-          Platform administrator console (demo) — sign in with the reserved address admin@seewee.ai.
+          Platform administrator console — sign in with your reserved administrative credentials.
         </p>
       )}
       <Field label="Email">
@@ -834,14 +869,38 @@ function DemoRoleFields({
   )
 }
 
-function DemoAccounts({ onPick }: { onPick: (acc: { email: string; name: string; role: Role }) => void }) {
+function DemoAccounts({
+  role,
+  onPick,
+}: {
+  role: Role
+  onPick: (acc: { email: string; name: string; role: Role }) => void
+}) {
+  if (role === 'ADMIN') {
+    return (
+      <div className="rounded-xl border border-dashed border-slate-700 bg-slate-900/60 p-3">
+        <p className="mb-2 flex items-center gap-1.5 text-xs font-medium text-slate-300">
+          <ShieldCheck className="h-3.5 w-3.5 text-sky-400" /> Platform Admin credential:
+        </p>
+        <button
+          type="button"
+          onClick={() => onPick(ADMIN_DEMO_ACCOUNT)}
+          className="flex items-center gap-1.5 rounded-full border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:border-sky-400 hover:bg-slate-700"
+        >
+          <ShieldCheck className="h-3 w-3 text-sky-400" />
+          {ADMIN_DEMO_ACCOUNT.hint}
+        </button>
+      </div>
+    )
+  }
+
   return (
     <div className="rounded-xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/60 p-3">
       <p className="mb-2 flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">
         <Sparkles className="h-3.5 w-3.5 text-amber-500" /> Demo accounts — one click:
       </p>
       <div className="flex flex-wrap gap-2">
-        {DEMO_ACCOUNTS.map((acc) => (
+        {PUBLIC_DEMO_ACCOUNTS.map((acc) => (
           <button
             key={acc.email}
             type="button"
