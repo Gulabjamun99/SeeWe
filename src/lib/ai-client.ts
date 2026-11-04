@@ -278,6 +278,34 @@ function generateContextualFallback(system: string, user: string): string {
     })
   }
 
+  // 3b. JD Parser (Extract structured fields from job description)
+  if (lowerSys.includes('jd parser') || lowerSys.includes('extract structured fields') || lowerSys.includes('musthaveskills')) {
+    const lines = user.split('\n').map((l) => l.trim()).filter(Boolean)
+    const titleMatch =
+      user.match(/(?:job\s*title|role|position|designation)\s*[:\-–]\s*([^\n]{3,60})/i) ||
+      user.match(/(?:hiring|looking|opening|urgent\s+requirement)\s+(?:for\s+)?(?:an?\s+)?([A-Za-z0-9+#. -]{3,60})/i)
+    const roleTitle = titleMatch ? titleMatch[1].trim() : (lines[0]?.slice(0, 60) || '')
+
+    const knownSkills = [
+      'React', 'Node.js', 'TypeScript', 'JavaScript', 'Python', 'Java', 'Spring Boot', 'SQL',
+      'AWS', 'Docker', 'Kubernetes', 'Next.js', 'MongoDB', 'PostgreSQL', 'Microservices',
+      'Git', 'CI/CD', 'REST APIs', 'GraphQL', 'Tailwind CSS', 'Redux', 'Kafka', 'Redis',
+      'HRBP', 'Talent Acquisition', 'Recruitment', 'Performance Management', 'Payroll',
+      'Sales', 'Business Development', 'CRM', 'Lead Generation'
+    ]
+    const detected = knownSkills.filter((sk) => new RegExp(`(^|[^a-z0-9+#.])${sk.toLowerCase()}([^a-z0-9+#.]|$)`, 'i').test(user.toLowerCase()))
+
+    return JSON.stringify({
+      roleTitle: roleTitle || 'Software Engineer',
+      minYears: 3,
+      maxYears: 7,
+      mustHaveSkills: detected.length > 0 ? detected.slice(0, 8) : ['Problem Solving', 'Engineering Fundamentals'],
+      goodToHaveSkills: detected.length > 8 ? detected.slice(8, 12) : ['Agile Methodology', 'Team Leadership'],
+      responsibilities: lines.filter((l) => l.length >= 20 && l.length <= 180 && !l.includes(':')).slice(0, 6),
+      location: 'Bengaluru'
+    })
+  }
+
   // 4. Job Description & Resume Match (JD Match)
   if (lowerSys.includes('jd') || lowerSys.includes('match') || lowerSys.includes('ats')) {
     return JSON.stringify({
