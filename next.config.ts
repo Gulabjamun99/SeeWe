@@ -7,6 +7,9 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   reactStrictMode: false,
+  outputFileTracingIncludes: {
+    '/**': ['./db/custom.db', './prisma/**'],
+  },
   // Native/heavy Node-only parsers used by POST /api/resume/parse — keep them
   // out of the bundler so pdfjs/canvas dynamic requires keep working.
   serverExternalPackages: ["pdf-parse", "mammoth"],

@@ -348,6 +348,25 @@ export function AuthDialog() {
     }
   }
 
+  async function handleQuickDemoLogin(acc: (typeof DEMO_ACCOUNTS)[number]) {
+    setRole(acc.role)
+    setEmail(acc.email)
+    setName(acc.name)
+    const comp = acc.role === 'RECRUITER' ? 'TechNova Solutions' : ''
+    setCompany(comp)
+    setPassword('')
+    setLoading(true)
+    try {
+      const user = await login(acc.email, acc.role, acc.name, comp || undefined, '')
+      toast.success(`Welcome back, ${user.name}! 👋`)
+      finish()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Sign in failed')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   /* ------------------------------- render ------------------------------ */
 
   const isCandidateFlow = role === 'CANDIDATE'
@@ -466,7 +485,7 @@ export function AuthDialog() {
               />
             )}
 
-            <DemoAccounts onPick={(acc) => { setRole(acc.role); setEmail(acc.email); setName(acc.name); setCompany(acc.role === 'RECRUITER' ? 'TechNova Solutions' : ''); setPassword('') }} />
+            <DemoAccounts onPick={handleQuickDemoLogin} />
           </>
         )}
 
