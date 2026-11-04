@@ -4,6 +4,7 @@ import {
   createChallenge,
   sendAuthEmail,
   emailVerifyEmail,
+  phoneOtpEmail,
 } from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
@@ -45,7 +46,7 @@ export async function POST(req: NextRequest) {
     let devCode: string | undefined
     if (phone) {
       const otp = await createChallenge(user.id, 'PHONE_OTP', phone)
-      const mail = emailVerifyPhoneEmail(user.name, phone, otp)
+      const mail = phoneOtpEmail(user.name, phone, otp)
       await sendAuthEmail({ to: user.email, toUserId: user.id, kind: 'PHONE_OTP', ...mail })
       devCode = otp // sandbox only
     }
