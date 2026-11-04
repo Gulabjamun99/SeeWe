@@ -29,7 +29,7 @@ import { Button } from '@/components/ui/button'
 type SpeakerState = 'idle' | 'playing' | 'pass' | 'fail'
 
 /** The ONE fixed interviewer voice for every interview (see /api/tts) */
-const INTERVIEWER_VOICE = 'jam'
+const INTERVIEWER_VOICE = 'arjun'
 
 const TEST_LINE =
   'This is a quick sound test. If you can hear my voice clearly, your sound is ready and we can begin the interview.'
@@ -41,6 +41,9 @@ export function SpeakerCheck() {
 
   const stopAudio = useCallback(() => {
     try {
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel()
+      }
       audioRef.current?.pause()
     } catch {
       /* noop */
@@ -54,6 +57,46 @@ export function SpeakerCheck() {
   const playTestSound = useCallback(async () => {
     stopAudio()
     setState('playing')
+
+    // 1. Try Browser Speech Synthesis with Indian Voice
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      try {
+        const synth = window.speechSynthesis
+        const voices = synth.getVoices()
+        const indianVoice = voices.find(
+          (v) =>
+            v.lang.toLowerCase().replace('_', '-').startsWith('en-in') ||
+            v.lang.toLowerCase().startsWith('hi') ||
+            v.name.toLowerCase().includes('india') ||
+            v.name.toLowerCase().includes('neerja') ||
+            v.name.toLowerCase().includes('prabhat') ||
+            v.name.toLowerCase().includes('heera') ||
+            v.name.toLowerCase().includes('rishi')
+        ) || voices.find((v) => v.lang.startsWith('en'))
+
+        if (indianVoice || voices.length > 0) {
+          synth.cancel()
+          const utterance = new SpeechSynthesisUtterance(TEST_LINE)
+          if (indianVoice) utterance.voice = indianVoice
+          utterance.rate = 0.9
+          utterance.pitch = 1.0
+          utterance.onend = () => {
+            setState((s) => (s === 'playing' ? 'idle' : s))
+            setPlayedOnce(true)
+          }
+          utterance.onerror = () => {
+            setState((s) => (s === 'playing' ? 'fail' : s))
+          }
+          synth.speak(utterance)
+          setPlayedOnce(true)
+          return
+        }
+      } catch (e) {
+        console.warn('Speech synthesis test fallback:', e)
+      }
+    }
+
+    // 2. Fallback to API TTS
     try {
       const res = await fetch('/api/tts', {
         method: 'POST',

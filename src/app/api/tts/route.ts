@@ -10,14 +10,12 @@ import { NextResponse } from 'next/server'
 import { getZAI } from '@/lib/ai-client'
 
 const HARD_LIMIT = 900 // API limit is 1024 chars; we cut earlier, at sentence boundary when possible
-const KNOWN_VOICES = ['tongtong', 'chuichui', 'xiaochen', 'jam', 'kazi', 'douji', 'luodo'] as const
+const KNOWN_VOICES = ['arjun', 'jam', 'alloy', 'echo', 'onyx'] as const
 const CACHE_MAX = 60
 
 /**
- * Interviewer voice — ONE fixed voice for every interview (user decision:
- * "ek hi rahega" — the candidate is never asked to pick). The TTS engine's
- * catalog is intentionally not exposed anymore; POST /api/tts still accepts a
- * voice id defensively but every caller now uses this single default.
+ * Interviewer voice — ONE fixed voice for every interview (Indian English "Arjun").
+ * Natural, clear, deliberate pacing.
  */
 const VOICE_CATALOG: Array<{
   id: (typeof KNOWN_VOICES)[number]
@@ -27,12 +25,12 @@ const VOICE_CATALOG: Array<{
   description: string
 }> = [
   {
-    id: 'jam',
+    id: 'arjun',
     label: 'Arjun',
     gender: 'male',
-    accent: 'One steady interviewer voice',
+    accent: 'Indian English interviewer voice',
     description:
-      'The SeeWe AI interviewer — one clear, easy-to-follow voice that reads every question, in every interview.',
+      'The SeeWe AI interviewer — clear, easy-to-follow Indian English voice that reads every question with deliberate pacing.',
   },
 ]
 
@@ -40,10 +38,10 @@ export async function GET() {
   return NextResponse.json({
     data: {
       voices: VOICE_CATALOG,
-      defaultVoice: 'jam',
-      speed: 0.85,
+      defaultVoice: 'arjun',
+      speed: 0.88,
       accentNote:
-        'Every interview uses one fixed AI interviewer voice — consistent, clear, and easy to follow.',
+        'Every interview uses one fixed AI interviewer voice — consistent, clear, Indian English accent.',
     },
   })
 }
@@ -84,7 +82,7 @@ export async function POST(request: Request) {
     const requestedVoice = typeof body?.voice === 'string' ? body.voice.toLowerCase() : ''
     const voice = (KNOWN_VOICES as readonly string[]).includes(requestedVoice)
       ? requestedVoice
-      : 'jam'
+      : 'arjun'
     // Slow-speech support (user request: AI must NOT rush the questions).
     // Clamp into the API's 0.5–2.0 window; default stays 1.0.
     const rawSpeed = typeof body?.speed === 'number' ? body.speed : 1.0

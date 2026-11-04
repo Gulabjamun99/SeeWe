@@ -253,26 +253,47 @@ const HEADER_LINE =
   /(?:key\s+responsibilities|responsibilities|required\s+skills?|skills?\s*required|skillset|requirements|qualifications?|about\s+us|about\s+the\s+role|perks|benefits|what\s+you.?ll\s+do|who\s+we\s+are|nice\s+to\s+have|good\s+to\s+have|job\s+description|employment\s+type|salary|experience|required|preferred)\b/i
 
 function extractRoleTitle(text: string): string {
+  // 1. Explicit labels: "Job Title: Full Stack Developer"
   const labelled =
     text.match(/(?:job\s*title|role\s*name|designation|position|role)\s*[:\-–]\s*([^\n]{3,80})/i)
   if (labelled) {
     const t = labelled[1].trim().replace(/\s+/g, ' ')
-    // reject lines that are clearly sentences or section headers
     if (t.split(/\s+/).length <= 8 && !/[.!?]$/.test(t) && !HEADER_LINE.test(t)) return t.slice(0, 80)
   }
-  // "As a Manager-HRBP, you will…" — the opening sentence often names the role
+
+  // 2. Intent patterns: "Hiring for Senior React Developer", "Looking for DevOps Engineer"
+  const intentMatch = text.match(/(?:we\s+are\s+)?(?:hiring|looking|opening|wanted|urgent\s+requirement)\s+(?:for\s+)?(?:an?\s+)?([A-Z][A-Za-z0-9+#. -]{2,60})/i)
+  if (intentMatch) {
+    const t = intentMatch[1].trim().replace(/\s+/g, ' ')
+    if (t.split(/\s+/).length <= 7 && !HEADER_LINE.test(t)) return t.slice(0, 80)
+  }
+
+  // 3. "As a Manager-HRBP, you will…" — opening sentence
   const asA = text.match(/^As an?\s+([A-Z][^,.\n]{2,50}),/m)
   if (asA) {
     const t = asA[1].trim().replace(/\s+/g, ' ')
     if (t.split(/\s+/).length <= 6 && !HEADER_LINE.test(t)) return t.slice(0, 80)
   }
-  const firstLine = text.split('\n').map((l) => l.trim()).find((l) => l.length > 0)
+
+  // 4. Scan lines for recognizable job role keywords
+  const ROLE_INDICATORS = /\b(developer|engineer|manager|architect|designer|lead|specialist|analyst|consultant|administrator|executive|director|officer|associate|intern|scientist)\b/i
+  const lines = text.split('\n').map((l) => l.trim()).filter((l) => l.length > 0 && l.length <= 80)
+  for (const line of lines.slice(0, 6)) {
+    if (HEADER_LINE.test(line)) continue
+    if (ROLE_INDICATORS.test(line) && line.split(/\s+/).length <= 7) {
+      return line.replace(/[*_#]/g, '').trim()
+    }
+  }
+
+  // 5. Clean first line fallback
+  const firstLine = lines[0]
   if (
     firstLine &&
-    firstLine.split(/\s+/).length <= 8 &&
-    firstLine.length <= 70 &&
+    firstLine.split(/\s+/).length <= 6 &&
+    firstLine.length <= 60 &&
     !/[.:]$/.test(firstLine) &&
-    !HEADER_LINE.test(firstLine)
+    !HEADER_LINE.test(firstLine) &&
+    !/\b(about|company|welcome|overview|client)\b/i.test(firstLine)
   ) {
     return firstLine.replace(/[*_#]/g, '').trim()
   }
@@ -363,26 +384,48 @@ export function parseJdDeterministic(rawJd: string): JdParse {
  * candidate currently holds (or headline). 0..1.
  */
 export function roleTitleSimilarity(jdRole: string, heldTitles: (string | null | undefined)[]): number {
-  const jdTokens = jdRole
-    .toLowerCase()
+  const jdLower = (jdRole || '').toLowerCase().trim()
+  if (!jdLower) return 0
+
+  const jdTokens = jdLower
     .split(/[^a-z0-9+#.]+/)
     .filter((t) => t.length >= 2 && !STOP_ROLE_TOKENS.has(t))
   if (jdTokens.length === 0) return 0
+
   let best = 0
   for (const title of heldTitles) {
     if (!title) continue
-    const titleLower = title.toLowerCase()
-    // a token hits when the title contains it OR any of its known synonyms
-    // ("Manager-HRBP" ↔ "HR Business Partner" via hrbp ↔ hr business partner)
-    const hits = jdTokens.filter((t) => {
-      if (titleLower.includes(t)) return true
-      return synonymsFor(t).some((s) => titleLower.includes(s))
-    }).length
+    const titleLower = title.toLowerCase().trim()
+
+    // 1. Direct or substring hit
+    if (titleLower.includes(jdLower) || jdLower.includes(titleLower)) {
+      best = Math.max(best, 0.95)
+      continue
+    }
+
+    // 2. Full-phrase synonym check
+    const fullSynonyms = synonymsFor(jdLower)
+    if (fullSynonyms.some((s) => titleLower.includes(s) || s.includes(titleLower))) {
+      best = Math.max(best, 0.9)
+      continue
+    }
+
+    // 3. Token-level overlap with synonyms
+    let hits = 0
+    for (const t of jdTokens) {
+      if (titleLower.includes(t)) {
+        hits++
+      } else {
+        const tokenSyns = synonymsFor(t)
+        if (tokenSyns.some((s) => titleLower.includes(s))) {
+          hits++
+        }
+      }
+    }
     const coverage = hits / jdTokens.length
-    // reward seniority-prefix alignment (senior/plant/head/lead)
     best = Math.max(best, coverage)
   }
-  return best
+  return Math.min(1, Math.round(best * 100) / 100)
 }
 
 /**

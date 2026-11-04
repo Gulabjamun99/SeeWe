@@ -274,7 +274,11 @@ export async function POST(req: NextRequest) {
         : ((mustCoverage ?? 0) * W.mustSkills * 0.75 + (goodCoverage ?? 0) * W.mustSkills * 0.25 +
             (roleScore ?? 0) * W.role + (resp.coverage ?? 0) * W.responsibilities) / coreWeightRaw
 
-    const coreGateApplied = coreScore !== null && coreScore < 0.3
+    // Candidate passes the core gate if they have either key skills (>=25%) OR matching role (>=30%) OR coreScore >= 0.20
+    const passesSkillGate = mustCoverage !== null && mustCoverage >= 0.25
+    const passesRoleGate = roleScore !== null && roleScore >= 0.3
+    const passesOverallCore = coreScore !== null && coreScore >= 0.20
+    const coreGateApplied = !passesSkillGate && !passesRoleGate && !passesOverallCore
     const totalWeight = components.reduce((s, c) => s + c.weight, 0)
     let overall = totalWeight === 0 ? 0 : Math.round((components.reduce((s, c) => s + c.score * c.weight, 0) / totalWeight) * 100)
     if (coreGateApplied) overall = Math.min(overall, 25)

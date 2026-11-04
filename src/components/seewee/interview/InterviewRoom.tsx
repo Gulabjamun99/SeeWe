@@ -300,7 +300,7 @@ export interface InterviewRoomProps {
  * candidate is never asked to choose). 'jam' is the engine's clearest English
  * speaker; the persona stays identical from the first question to the last.
  */
-const AI_VOICE = 'jam'
+const AI_VOICE = 'arjun'
 
 /* ------------------------------------------------------------------ */
 /* Helpers                                                             */
@@ -739,6 +739,9 @@ export function InterviewRoom({ className }: InterviewRoomProps) {
     // TTS audio was still downloading would be overridden when it arrived and
     // the AI would start talking again — the exact "won't stop talking" bug.
     speakEpochRef.current += 1
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel()
+    }
     audioElRef.current?.pause()
     audioElRef.current = null
     setSpeaking(false)
@@ -756,10 +759,54 @@ export function InterviewRoom({ className }: InterviewRoomProps) {
       if (recorderRef.current) return
       killVoice(false)
       const epoch = speakEpochRef.current
+
+      // 1. Browser Speech Synthesis with natural Indian English voice preference
+      if ('speechSynthesis' in window) {
+        try {
+          const synth = window.speechSynthesis
+          const voices = synth.getVoices()
+          const indianVoice = voices.find(
+            (v) =>
+              v.lang.toLowerCase().replace('_', '-').startsWith('en-in') ||
+              v.lang.toLowerCase().startsWith('hi') ||
+              v.name.toLowerCase().includes('india') ||
+              v.name.toLowerCase().includes('neerja') ||
+              v.name.toLowerCase().includes('prabhat') ||
+              v.name.toLowerCase().includes('heera') ||
+              v.name.toLowerCase().includes('rishi')
+          ) || voices.find((v) => v.lang.startsWith('en'))
+
+          if (indianVoice || voices.length > 0) {
+            synth.cancel()
+            const utterance = new SpeechSynthesisUtterance(text)
+            if (indianVoice) utterance.voice = indianVoice
+            utterance.rate = 0.88 // Clear, steady pacing
+            utterance.pitch = 1.0
+
+            utterance.onstart = () => {
+              if (epoch === speakEpochRef.current && !recorderRef.current && !mutedRef.current) {
+                setSpeaking(true)
+              } else {
+                synth.cancel()
+              }
+            }
+            utterance.onend = () => {
+              if (epoch === speakEpochRef.current) setSpeaking(false)
+            }
+            utterance.onerror = () => {
+              if (epoch === speakEpochRef.current) setSpeaking(false)
+            }
+
+            synth.speak(utterance)
+            return
+          }
+        } catch (e) {
+          console.warn('[tts] Web Speech API fallback to audio route:', e)
+        }
+      }
+
+      // 2. Fallback to server-side TTS
       try {
-        // Slow, clear voice (user request: the AI must not rush the
-        // questions). Speed 0.85 ≈ 15% slower. One fixed interviewer voice
-        // (AI_VOICE) for every interview — the candidate is never asked.
         const { ok, data, error } = await postJson<string>('/api/tts', {
           text,
           voice: aiVoiceRef.current,
@@ -767,11 +814,7 @@ export function InterviewRoom({ className }: InterviewRoomProps) {
         })
         const url = typeof data === 'string' ? data : ''
         if (!ok || !url.startsWith('data:audio')) throw new Error(error ?? 'TTS failed')
-        // Epoch changed → the user stopped/muted/superseded us while fetching.
-        // Barge-in always wins over the spoken question.
         if (epoch !== speakEpochRef.current) return
-        // Muted / voice dead / candidate STARTED ANSWERING while the audio was
-        // being fetched — same rule.
         if (mutedRef.current || deadRef.current || recorderRef.current) return
         const el = new Audio(url)
         audioElRef.current = el
@@ -782,9 +825,9 @@ export function InterviewRoom({ className }: InterviewRoomProps) {
           if (audioElRef.current === el) killVoice(true)
         }
         setSpeaking(true)
-        await el.play() // rejection bubbles into the silent-mode branch below
+        await el.play()
       } catch {
-        killVoice(true) // latch → '🔇 Voice unavailable — reading mode'
+        killVoice(true)
       }
     },
     [killVoice]

@@ -270,7 +270,7 @@ export async function POST(req: NextRequest) {
         else { expScore = 0.25; expState = 'FAIL'; expDetail = `${exp} yrs vs ${minExp}–${upper} — well below.` }
       }
 
-      // ── CORE GATE (user rule): role/skills/responsibilities decide ──────
+      // ── CORE GATE: role, skills, or responsibilities decide ──────
       const coreWeightRaw =
         (mustCoverage !== null || goodCoverage !== null ? W.mustSkills : 0) +
         (roleScore !== null ? W.role : 0) +
@@ -281,9 +281,14 @@ export async function POST(req: NextRequest) {
           : ((mustCoverage ?? 0) * W.mustSkills * 0.75 + (goodCoverage ?? 0) * W.mustSkills * 0.25 +
               (roleScore ?? 0) * W.role + (resp.coverage ?? 0) * W.responsibilities) / coreWeightRaw
 
-      if (coreScore === null || coreScore < 0.3) {
+      // Pass gate if candidate has either sufficient core skills (>=25%) OR matching role (>=30%) OR overall coreScore >= 0.20
+      const passesSkillGate = mustCoverage !== null && mustCoverage >= 0.25
+      const passesRoleGate = roleScore !== null && roleScore >= 0.3
+      const passesOverallCore = coreScore !== null && coreScore >= 0.20
+
+      if (!passesSkillGate && !passesRoleGate && !passesOverallCore) {
         screenedOut++
-        continue // excluded — experience/location can never rescue the core
+        continue // genuinely off-domain profile — excluded
       }
 
       const skillRaw = (mustCoverage ?? 0) * 0.75 + (goodCoverage ?? 0) * 0.25
