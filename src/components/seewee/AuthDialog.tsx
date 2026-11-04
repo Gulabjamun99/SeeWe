@@ -90,6 +90,9 @@ export function AuthDialog() {
   const [resendIn, setResendIn] = useState(0)
   const [agreeTos, setAgreeTos] = useState(false)
   const [legalPage, setLegalPage] = useState<LegalPage | null>(null)
+  const [googleModalOpen, setGoogleModalOpen] = useState(false)
+  const [googleLoading, setGoogleLoading] = useState(false)
+  const [googleInputEmail, setGoogleInputEmail] = useState('')
   const codeRef = useRef<HTMLInputElement>(null)
 
   // resend cooldown ticker
@@ -385,6 +388,40 @@ export function AuthDialog() {
     }
   }
 
+  async function handleGoogleAuthSubmit(selectedEmail: string, selectedName?: string) {
+    if (!EMAIL_RE.test(selectedEmail.trim())) {
+      toast.error('Please enter a valid Google email address')
+      return
+    }
+    setGoogleLoading(true)
+    try {
+      const res = await fetch('/api/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: selectedEmail.trim(),
+          name: selectedName || selectedEmail.split('@')[0],
+          role: role === 'ADMIN' ? 'CANDIDATE' : role,
+          company: role === 'RECRUITER' ? (company || 'TechNova Solutions') : undefined,
+        }),
+      })
+      const text = await res.text()
+      const json = text ? JSON.parse(text) : {}
+      if (!res.ok || json.error) throw new Error(json.error || 'Google sign-in failed')
+
+      const userData = json.data as User
+      setUser(userData)
+      applyTargetView(userData.role)
+      toast.success(`Signed in with Google! Welcome, ${userData.name} 👋`)
+      setGoogleModalOpen(false)
+      finish()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Google sign-in failed')
+    } finally {
+      setGoogleLoading(false)
+    }
+  }
+
   /* ------------------------------- render ------------------------------ */
 
   const isCandidateFlow = role === 'CANDIDATE'
@@ -419,6 +456,26 @@ export function AuthDialog() {
                 if (r === 'ADMIN') setEmail((prev) => prev.trim() || 'admin@seewee.ai')
               }}
             />
+
+            {role !== 'ADMIN' && (
+              <div className="mt-4 space-y-3">
+                <button
+                  type="button"
+                  onClick={() => setGoogleModalOpen(true)}
+                  disabled={busy || googleLoading}
+                  className="flex h-11 w-full items-center justify-center gap-2.5 rounded-xl border border-slate-300 bg-white px-4 font-semibold text-slate-700 shadow-sm transition-all hover:bg-slate-50 hover:border-slate-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+                >
+                  <GoogleIcon className="h-4 w-4" />
+                  <span>Continue with Google</span>
+                </button>
+                <div className="relative flex items-center justify-center">
+                  <div className="w-full border-t border-slate-200 dark:border-slate-800" />
+                  <span className="relative bg-white px-2.5 text-[10px] font-medium uppercase tracking-wider text-slate-400 dark:bg-slate-900">
+                    or continue with email
+                  </span>
+                </div>
+              </div>
+            )}
 
             {isCandidateFlow ? (
               <div className="space-y-4">
@@ -515,6 +572,23 @@ export function AuthDialog() {
               title="Create your job seeker account"
               desc="Free forever — your profile, CV and AI interview prep in one place."
             />
+            <div className="mb-4 space-y-3">
+              <button
+                type="button"
+                onClick={() => setGoogleModalOpen(true)}
+                disabled={busy || googleLoading}
+                className="flex h-11 w-full items-center justify-center gap-2.5 rounded-xl border border-slate-300 bg-white px-4 font-semibold text-slate-700 shadow-sm transition-all hover:bg-slate-50 hover:border-slate-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+              >
+                <GoogleIcon className="h-4 w-4" />
+                <span>1-Click Sign up with Google</span>
+              </button>
+              <div className="relative flex items-center justify-center">
+                <div className="w-full border-t border-slate-200 dark:border-slate-800" />
+                <span className="relative bg-white px-2.5 text-[10px] font-medium uppercase tracking-wider text-slate-400 dark:bg-slate-900">
+                  or register with email
+                </span>
+              </div>
+            </div>
             <div className="space-y-4">
               <Field label="Full name">
                 <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Aarav Sharma" />
@@ -740,6 +814,67 @@ export function AuthDialog() {
         onOpenChange={(open) => !open && setLegalPage(null)}
         onPageChange={setLegalPage}
       />
+
+      {/* Google 1-Click Sign-In Dialog */}
+      <Dialog open={googleModalOpen} onOpenChange={setGoogleModalOpen}>
+        <DialogContent className="sm:max-w-sm rounded-2xl p-6">
+          <div className="flex flex-col items-center text-center">
+            <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-slate-50 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 shadow-sm">
+              <GoogleIcon className="h-6 w-6" />
+            </div>
+            <DialogTitle className="text-lg font-bold text-slate-900 dark:text-slate-100">Sign in with Google</DialogTitle>
+            <DialogDescription className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+              Choose an account to continue to <span className="font-semibold text-blue-600 dark:text-blue-400">SeeWe</span>
+            </DialogDescription>
+          </div>
+
+          <div className="mt-4 space-y-3">
+            {/* Quick 1-click Google account */}
+            <button
+              type="button"
+              disabled={googleLoading}
+              onClick={() => void handleGoogleAuthSubmit('aarav.sharma@gmail.com', 'Aarav Sharma')}
+              className="flex w-full items-center gap-3 rounded-xl border border-slate-200 dark:border-slate-700 p-3 text-left hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+            >
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-600 text-sm font-bold text-white">
+                A
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-xs font-semibold text-slate-900 dark:text-slate-100">Aarav Sharma</p>
+                <p className="truncate text-[11px] text-slate-500 dark:text-slate-400">aarav.sharma@gmail.com</p>
+              </div>
+              <span className="text-[10px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full dark:bg-blue-950/60 dark:text-blue-300">
+                1-Click
+              </span>
+            </button>
+
+            <div className="relative my-2 flex items-center justify-center">
+              <div className="w-full border-t border-slate-200 dark:border-slate-800" />
+              <span className="relative bg-white dark:bg-slate-900 px-2 text-[10px] uppercase text-slate-400">
+                or enter your Gmail
+              </span>
+            </div>
+
+            <div className="space-y-2">
+              <Input
+                type="email"
+                placeholder="yourname@gmail.com"
+                value={googleInputEmail}
+                onChange={(e) => setGoogleInputEmail(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && void handleGoogleAuthSubmit(googleInputEmail)}
+              />
+              <Button
+                onClick={() => void handleGoogleAuthSubmit(googleInputEmail)}
+                disabled={googleLoading || !googleInputEmail.trim()}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white h-10 shadow-sm"
+              >
+                {googleLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <GoogleIcon className="mr-2 h-4 w-4" />}
+                Continue with Google
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   )
 }
@@ -998,5 +1133,28 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       <Label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{label}</Label>
       {children}
     </div>
+  )
+}
+
+function GoogleIcon({ className = 'h-4 w-4' }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" width="18" height="18">
+      <path
+        fill="#4285F4"
+        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+      />
+      <path
+        fill="#34A853"
+        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+      />
+      <path
+        fill="#FBBC05"
+        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+      />
+      <path
+        fill="#EA4335"
+        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+      />
+    </svg>
   )
 }
