@@ -35,6 +35,12 @@ function generatedClientMtime(): number {
  */
 function resolveClient(): PrismaClient {
   const existing = globalForPrisma.prisma
+
+  // In production (Vercel / Cloud), always reuse single client cleanly without dynamic require
+  if (process.env.NODE_ENV === 'production') {
+    return existing ?? newClient()
+  }
+
   const genMtime = generatedClientMtime()
 
   if (existing) {
@@ -62,11 +68,9 @@ function resolveClient(): PrismaClient {
     }
     const fresh = nodeRequire('@prisma/client') as { PrismaClient: typeof PrismaClient }
     const rebuilt = new fresh.PrismaClient({ log: ['query'] })
-    console.log('[db] Prisma client was stale (missing newer models) — rebuilt from fresh generate')
     globalForPrisma.prismaGeneratedAt = generatedClientMtime()
     return rebuilt
   } catch (err) {
-    console.error('[db] Failed to rebuild stale Prisma client, keeping existing instance:', err)
     return existing ?? newClient()
   }
 }
