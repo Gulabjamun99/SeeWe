@@ -24,47 +24,58 @@ interface StrengthCheck {
 }
 
 function computeChecks(user: User): StrengthCheck[] {
+  const skillsStr = Array.isArray(user?.skills)
+    ? (user.skills as unknown as string[]).join(', ')
+    : typeof user?.skills === 'string'
+      ? user.skills
+      : ''
+  const resumeStr = typeof user?.resumeText === 'string' ? user.resumeText : ''
+  const headlineStr = typeof user?.headline === 'string' ? user.headline : ''
+  const locationStr = typeof user?.location === 'string' ? user.location : ''
+  const educationStr = typeof user?.education === 'string' ? user.education : ''
+  const phoneStr = typeof user?.phone === 'string' ? user.phone : ''
+
   return [
     {
       key: 'headline',
       label: 'Add a headline',
-      done: Boolean(user.headline?.trim()),
+      done: Boolean(headlineStr.trim()),
       weight: 15,
     },
     {
       key: 'skills',
       label: 'List your skills',
-      done: Boolean(user.skills?.trim()),
+      done: Boolean(skillsStr.trim()),
       weight: 20,
     },
     {
       key: 'experience',
       label: 'Set years of experience',
-      done: user.experienceYears != null,
+      done: user?.experienceYears != null,
       weight: 15,
     },
     {
       key: 'location',
       label: 'Add your city',
-      done: Boolean(user.location?.trim()),
+      done: Boolean(locationStr.trim()),
       weight: 10,
     },
     {
       key: 'education',
       label: 'Add education',
-      done: Boolean(user.education?.trim()),
+      done: Boolean(educationStr.trim()),
       weight: 10,
     },
     {
       key: 'phone',
       label: 'Add a phone number',
-      done: Boolean(user.phone?.trim()),
+      done: Boolean(phoneStr.trim()),
       weight: 10,
     },
     {
       key: 'resume',
       label: 'Save your resume text',
-      done: (user.resumeText?.trim().length ?? 0) >= 100,
+      done: resumeStr.trim().length >= 100,
       weight: 20,
     },
   ]

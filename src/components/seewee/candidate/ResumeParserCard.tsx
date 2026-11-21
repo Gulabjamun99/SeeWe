@@ -435,12 +435,17 @@ export function ResumeParserCard({
                     <div className="flex items-start gap-2">
                       <span className="w-20 shrink-0 text-slate-400 font-medium">Skills:</span>
                       <div className="flex flex-wrap gap-1.5">
-                        {user.skills.split(',').map((s) => (
+                        {(Array.isArray(user.skills)
+                          ? (user.skills as unknown as string[])
+                          : typeof user.skills === 'string'
+                            ? user.skills.split(',')
+                            : []
+                        ).map((s) => (
                           <span
-                            key={s}
+                            key={String(s)}
                             className="rounded-md border border-blue-200 bg-blue-50/70 px-2 py-0.5 text-[11px] font-medium text-blue-700 dark:border-blue-800 dark:bg-blue-950/60 dark:text-blue-300"
                           >
-                            {s.trim()}
+                            {String(s).trim()}
                           </span>
                         ))}
                       </div>

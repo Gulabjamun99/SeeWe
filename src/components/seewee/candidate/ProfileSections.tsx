@@ -1092,7 +1092,13 @@ function CvBuilderDialog({
   }, [user.id])
 
   const p = profile ?? user
-  const skills = (p.skills ?? '').split(',').map((s) => s.trim()).filter(Boolean)
+  const skills = (
+    Array.isArray(p.skills)
+      ? (p.skills as unknown as string[])
+      : typeof p.skills === 'string'
+        ? p.skills.split(',')
+        : []
+  ).map((s) => String(s).trim()).filter(Boolean)
 
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>

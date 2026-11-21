@@ -444,7 +444,9 @@ export function CandidateDashboard() {
       phone: user.phone ?? '',
       headline: user.headline ?? '',
       location: user.location ?? '',
-      skills: user.skills ?? '',
+      skills: Array.isArray(user.skills)
+        ? (user.skills as unknown as string[]).join(', ')
+        : (user.skills ?? ''),
       experienceYears:
         user.experienceYears != null ? String(user.experienceYears) : '',
       currentSalary:
@@ -463,15 +465,6 @@ export function CandidateDashboard() {
     })
     if (saved) setDraft((prev) => ({ ...prev, ...saved }))
   }, [user?.id])
-
-  // Automatically refresh form inputs whenever CV upload auto-parses new profile data
-  useEffect(() => {
-    const handleSync = () => {
-      void reloadProfileFromServer()
-    }
-    window.addEventListener('seewe:profile-synced', handleSync)
-    return () => window.removeEventListener('seewe:profile-synced', handleSync)
-  }, [reloadProfileFromServer])
 
   // Keep the visibility switch in sync with server truth
   useEffect(() => {
@@ -706,6 +699,15 @@ export function CandidateDashboard() {
       /* silent — the parser card already surfaced its own success toast */
     }
   }, [user, setUser])
+
+  // Automatically refresh form inputs whenever CV upload auto-parses new profile data
+  useEffect(() => {
+    const handleSync = () => {
+      void reloadProfileFromServer()
+    }
+    window.addEventListener('seewe:profile-synced', handleSync)
+    return () => window.removeEventListener('seewe:profile-synced', handleSync)
+  }, [reloadProfileFromServer])
 
   /* ----------------------------- mailbox ------------------------------ */
   // Process emails "sent" to this candidate's address (application received,
