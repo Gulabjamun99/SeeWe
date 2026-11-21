@@ -52,7 +52,12 @@ export function CvUploadCard() {
       const res = await fetch(`/api/candidates/${encodeURIComponent(user.id)}/cv`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          ...payload,
+          userId: user.id,
+          email: user.email,
+          name: user.name,
+        }),
       })
       const json = (await res.json().catch(() => ({}))) as ApiResponse<{
         cvFileName: string

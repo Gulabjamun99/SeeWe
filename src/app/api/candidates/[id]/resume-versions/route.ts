@@ -29,11 +29,33 @@ const VERSION_META_SELECT = {
   createdAt: true,
 } as const
 
-async function loadCandidate(id: string) {
-  return db.user.findUnique({
-    where: { id },
+async function loadCandidate(rawId: string) {
+  const decoded = decodeURIComponent(rawId).trim()
+  let user = await db.user.findFirst({
+    where: {
+      OR: [
+        { id: decoded },
+        { email: decoded.toLowerCase() },
+      ],
+    },
     select: { id: true, role: true },
   })
+
+  if (!user) {
+    const isEmail = decoded.includes('@')
+    const email = isEmail ? decoded.toLowerCase() : `${decoded}@candidate.seewe.ai`
+    user = await db.user.create({
+      data: {
+        id: (decoded.startsWith('c') && decoded.length > 15) ? decoded : undefined,
+        name: isEmail ? decoded.split('@')[0] : 'Candidate',
+        email,
+        role: 'CANDIDATE',
+      },
+      select: { id: true, role: true },
+    })
+  }
+
+  return user
 }
 
 // GET — list the candidate's resume versions (no file bytes)
@@ -49,7 +71,7 @@ export async function GET(
     }
 
     const versions = await db.resumeVersion.findMany({
-      where: { userId: id },
+      where: { userId: candidate.id },
       orderBy: [{ isActive: 'desc' }, { createdAt: 'desc' }],
       select: VERSION_META_SELECT,
     })
@@ -96,14 +118,14 @@ export async function POST(
       return NextResponse.json({ error: parsed.error }, { status: 400 })
     }
 
-    const existingCount = await db.resumeVersion.count({ where: { userId: id } })
+    const existingCount = await db.resumeVersion.count({ where: { userId: candidate.id } })
     // First version ever — or an explicit makeActive — becomes the active CV.
     const makeActive = existingCount === 0 || body?.makeActive === true
 
     const version = await db.$transaction(async (tx) => {
       const created = await tx.resumeVersion.create({
         data: {
-          userId: id,
+          userId: candidate.id,
           label,
           fileName: parsed.cv.fileName,
           mimeType: parsed.cv.mimeType,
@@ -116,12 +138,12 @@ export async function POST(
       })
       if (makeActive) {
         await tx.resumeVersion.updateMany({
-          where: { userId: id, id: { not: created.id } },
+          where: { userId: candidate.id, id: { not: created.id } },
           data: { isActive: false },
         })
         // Mirror into the profile CV — the exact document recruiters receive.
         await tx.user.update({
-          where: { id },
+          where: { id: candidate.id },
           data: {
             cvFileName: created.fileName,
             cvMimeType: created.mimeType,

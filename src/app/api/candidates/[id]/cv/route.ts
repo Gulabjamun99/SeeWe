@@ -20,17 +20,43 @@ const CV_META_SELECT = {
   cvUploadedAt: true,
 }
 
-async function loadCandidate(id: string) {
-  let user = await db.user.findUnique({
-    where: { id },
+async function resolveCandidate(rawId: string, body?: any) {
+  const decoded = decodeURIComponent(rawId).trim()
+  const bodyEmail = typeof body?.email === 'string' && body.email.trim() ? body.email.trim().toLowerCase() : ''
+  const bodyUserId = typeof body?.userId === 'string' && body.userId.trim() ? body.userId.trim() : ''
+
+  let user = await db.user.findFirst({
+    where: {
+      OR: [
+        { id: decoded },
+        { email: decoded.toLowerCase() },
+        ...(bodyEmail ? [{ email: bodyEmail }] : []),
+        ...(bodyUserId ? [{ id: bodyUserId }] : []),
+      ],
+    },
     select: { id: true, role: true, ...CV_META_SELECT, cvData: true },
   })
+
+  // Auto-create candidate in SQLite if not yet present
   if (!user) {
-    user = await db.user.findFirst({
-      where: { email: id },
+    const isEmail = decoded.includes('@')
+    const finalEmail = bodyEmail || (isEmail ? decoded.toLowerCase() : `${decoded}@candidate.seewe.ai`)
+    const finalName = typeof body?.name === 'string' && body.name.trim()
+      ? body.name.trim()
+      : (isEmail ? decoded.split('@')[0] : 'Candidate')
+    const finalId = (decoded.startsWith('c') && decoded.length > 15) ? decoded : (bodyUserId || undefined)
+
+    user = await db.user.create({
+      data: {
+        id: finalId,
+        name: finalName,
+        email: finalEmail,
+        role: 'CANDIDATE',
+      },
       select: { id: true, role: true, ...CV_META_SELECT, cvData: true },
     })
   }
+
   return user
 }
 
@@ -41,19 +67,19 @@ export async function POST(
 ) {
   try {
     const { id } = await params
-    const existing = await loadCandidate(id)
-    if (!existing || existing.role !== 'CANDIDATE') {
+    const body = await req.json().catch(() => null)
+    const existing = await resolveCandidate(id, body)
+    if (!existing) {
       return NextResponse.json({ error: 'Candidate not found' }, { status: 404 })
     }
 
-    const body = await req.json().catch(() => null)
     const parsed = validateCvUpload(body)
     if (!parsed.ok) {
       return NextResponse.json({ error: parsed.error }, { status: 400 })
     }
 
     const updated = await db.user.update({
-      where: { id },
+      where: { id: existing.id },
       data: {
         cvFileName: parsed.cv.fileName,
         cvMimeType: parsed.cv.mimeType,
@@ -79,12 +105,12 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params
-    const existing = await loadCandidate(id)
-    if (!existing || existing.role !== 'CANDIDATE') {
+    const existing = await resolveCandidate(id)
+    if (!existing) {
       return NextResponse.json({ error: 'Candidate not found' }, { status: 404 })
     }
     await db.user.update({
-      where: { id },
+      where: { id: existing.id },
       data: { cvFileName: null, cvMimeType: null, cvData: null, cvUploadedAt: null },
     })
     return NextResponse.json({ data: { removed: true } })
@@ -101,8 +127,8 @@ export async function GET(
 ) {
   try {
     const { id } = await params
-    const user = await loadCandidate(id)
-    if (!user || user.role !== 'CANDIDATE' || !user.cvData || !user.cvFileName) {
+    const user = await resolveCandidate(id)
+    if (!user || !user.cvData || !user.cvFileName) {
       return NextResponse.json({ error: 'No CV attached to this profile' }, { status: 404 })
     }
 

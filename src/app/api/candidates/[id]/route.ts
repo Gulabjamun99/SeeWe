@@ -65,9 +65,15 @@ export async function GET(
 ) {
   try {
     const { id } = await params
+    const decoded = decodeURIComponent(id).trim()
     const viewerId = req.nextUrl.searchParams.get('viewerId') || ''
-    let user = await db.user.findUnique({
-      where: { id },
+    let user = await db.user.findFirst({
+      where: {
+        OR: [
+          { id: decoded },
+          { email: decoded.toLowerCase() },
+        ],
+      },
       select: {
         ...CANDIDATE_SELECT,
         applications: {
@@ -93,8 +99,17 @@ export async function GET(
     })
 
     if (!user) {
-      user = await db.user.findFirst({
-        where: { email: id },
+      const isEmail = decoded.includes('@')
+      const email = isEmail ? decoded.toLowerCase() : `${decoded}@candidate.seewe.ai`
+      const name = isEmail ? decoded.split('@')[0] : 'Candidate'
+      user = await db.user.create({
+        data: {
+          id: decoded.startsWith('c') && decoded.length > 15 ? decoded : undefined,
+          email,
+          name,
+          role: 'CANDIDATE',
+          avatarSeed: Math.random().toString(36).slice(2, 10),
+        },
         select: {
           ...CANDIDATE_SELECT,
           applications: {
@@ -117,10 +132,6 @@ export async function GET(
           certifications: { orderBy: { createdAt: 'desc' } },
         },
       })
-    }
-
-    if (!user) {
-      return NextResponse.json({ error: 'Candidate not found' }, { status: 404 })
     }
 
     // Password never selected; destructure just for clarity that it stays out
@@ -368,28 +379,31 @@ export async function PATCH(
     }
 
     // Role guard: this endpoint edits CANDIDATE profiles only.
-    let existing = await db.user.findUnique({ where: { id }, select: { id: true, role: true } })
-    if (!existing) {
-      existing = await db.user.findFirst({
-        where: {
-          OR: [
-            { email: id },
-            { email: typeof body?.email === 'string' ? body.email.trim().toLowerCase() : '' },
-          ],
-        },
-        select: { id: true, role: true },
-      })
-    }
+    const decoded = decodeURIComponent(id).trim()
+    const bodyEmail = typeof body?.email === 'string' && body.email.trim() ? body.email.trim().toLowerCase() : ''
+    const bodyUserId = typeof body?.userId === 'string' && body.userId.trim() ? body.userId.trim() : ''
+
+    let existing = await db.user.findFirst({
+      where: {
+        OR: [
+          { id: decoded },
+          { email: decoded.toLowerCase() },
+          ...(bodyEmail ? [{ email: bodyEmail }] : []),
+          ...(bodyUserId ? [{ id: bodyUserId }] : []),
+        ],
+      },
+      select: { id: true, role: true },
+    })
 
     if (!existing) {
-      const email = typeof body?.email === 'string' && body.email.includes('@')
-        ? body.email.trim().toLowerCase()
-        : `${id}@candidate.seewee.ai`
+      const isEmail = decoded.includes('@')
+      const email = bodyEmail || (isEmail ? decoded.toLowerCase() : `${decoded}@candidate.seewee.ai`)
+      const finalId = (decoded.startsWith('c') && decoded.length > 15) ? decoded : (bodyUserId || undefined)
       const newCand = await db.user.create({
         data: {
-          id,
+          id: finalId,
           email,
-          name: typeof body?.name === 'string' && body.name.trim() ? body.name.trim() : 'Candidate',
+          name: typeof body?.name === 'string' && body.name.trim() ? body.name.trim() : (isEmail ? decoded.split('@')[0] : 'Candidate'),
           role: 'CANDIDATE',
           avatarSeed: Math.random().toString(36).slice(2, 12),
           ...data,
@@ -399,7 +413,7 @@ export async function PATCH(
       return NextResponse.json({ data: newCand })
     }
 
-    if (existing.role !== 'CANDIDATE') {
+    if (existing.role && existing.role.toUpperCase() !== 'CANDIDATE') {
       return NextResponse.json({ error: 'Candidate not found' }, { status: 404 })
     }
 

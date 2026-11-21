@@ -22,6 +22,35 @@ const VERSION_META_SELECT = {
   createdAt: true,
 } as const
 
+async function resolveCandidate(rawId: string) {
+  const decoded = decodeURIComponent(rawId).trim()
+  let user = await db.user.findFirst({
+    where: {
+      OR: [
+        { id: decoded },
+        { email: decoded.toLowerCase() },
+      ],
+    },
+    select: { id: true, role: true },
+  })
+
+  if (!user) {
+    const isEmail = decoded.includes('@')
+    const email = isEmail ? decoded.toLowerCase() : `${decoded}@candidate.seewe.ai`
+    user = await db.user.create({
+      data: {
+        id: (decoded.startsWith('c') && decoded.length > 15) ? decoded : undefined,
+        name: isEmail ? decoded.split('@')[0] : 'Candidate',
+        email,
+        role: 'CANDIDATE',
+      },
+      select: { id: true, role: true },
+    })
+  }
+
+  return user
+}
+
 /** Load a version scoped to the owning candidate (path id). */
 async function loadOwnedVersion(userId: string, versionId: string) {
   return db.resumeVersion.findFirst({
@@ -37,15 +66,12 @@ export async function PATCH(
 ) {
   try {
     const { id, versionId } = await params
-    const candidate = await db.user.findUnique({
-      where: { id },
-      select: { id: true, role: true },
-    })
-    if (!candidate || candidate.role !== 'CANDIDATE') {
+    const candidate = await resolveCandidate(id)
+    if (!candidate) {
       return NextResponse.json({ error: 'Candidate not found' }, { status: 404 })
     }
 
-    const owned = await loadOwnedVersion(id, versionId)
+    const owned = await loadOwnedVersion(candidate.id, versionId)
     if (!owned) {
       return NextResponse.json({ error: 'CV version not found' }, { status: 404 })
     }
@@ -65,13 +91,13 @@ export async function PATCH(
         select: { ...VERSION_META_SELECT, data: true },
       })
       await tx.resumeVersion.updateMany({
-        where: { userId: id, id: { not: versionId } },
+        where: { userId: candidate.id, id: { not: versionId } },
         data: { isActive: false },
       })
       // Mirror into the profile CV so recruiters/applications keep receiving
       // exactly the document the candidate activated.
       await tx.user.update({
-        where: { id },
+        where: { id: candidate.id },
         data: {
           cvFileName: activated.fileName,
           cvMimeType: activated.mimeType,
@@ -97,16 +123,13 @@ export async function DELETE(
 ) {
   try {
     const { id, versionId } = await params
-    const candidate = await db.user.findUnique({
-      where: { id },
-      select: { id: true, role: true },
-    })
-    if (!candidate || candidate.role !== 'CANDIDATE') {
+    const candidate = await resolveCandidate(id)
+    if (!candidate) {
       return NextResponse.json({ error: 'Candidate not found' }, { status: 404 })
     }
 
     const owned = await db.resumeVersion.findFirst({
-      where: { id: versionId, userId: id },
+      where: { id: versionId, userId: candidate.id },
       select: { id: true, isActive: true },
     })
     if (!owned) {
@@ -120,10 +143,10 @@ export async function DELETE(
       // Active one deleted: keep User.cv* as-is while other versions remain
       // (the profile CV is a snapshot, it still exists), but clear it when the
       // candidate has no versions left at all.
-      remaining = await db.resumeVersion.count({ where: { userId: id } })
+      remaining = await db.resumeVersion.count({ where: { userId: candidate.id } })
       if (remaining === 0) {
         await db.user.update({
-          where: { id },
+          where: { id: candidate.id },
           data: { cvFileName: null, cvMimeType: null, cvData: null, cvUploadedAt: null },
         })
       }

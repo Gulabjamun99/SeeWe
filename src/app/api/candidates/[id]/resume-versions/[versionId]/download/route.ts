@@ -20,12 +20,18 @@ export async function GET(
 ) {
   try {
     const { id, versionId } = await params
+    const decoded = decodeURIComponent(id).trim()
 
-    const candidate = await db.user.findUnique({
-      where: { id },
+    let candidate = await db.user.findFirst({
+      where: {
+        OR: [
+          { id: decoded },
+          { email: decoded.toLowerCase() },
+        ],
+      },
       select: { id: true, role: true },
     })
-    if (!candidate || candidate.role !== 'CANDIDATE') {
+    if (!candidate) {
       return NextResponse.json({ error: 'Candidate not found' }, { status: 404 })
     }
 
@@ -33,7 +39,7 @@ export async function GET(
     // lets hiring-team surfaces prove their role; the owning candidate needs
     // no extra proof (their own id rides the path, same as the photo/cv routes).
     const requesterId = req.nextUrl.searchParams.get('requesterId')
-    if (requesterId && requesterId !== id) {
+    if (requesterId && requesterId !== candidate.id) {
       const requester = await db.user.findUnique({
         where: { id: requesterId },
         select: { role: true },
@@ -47,7 +53,7 @@ export async function GET(
     }
 
     const version = await db.resumeVersion.findFirst({
-      where: { id: versionId, userId: id },
+      where: { id: versionId, userId: candidate.id },
       select: { fileName: true, mimeType: true, data: true },
     })
     if (!version) {
