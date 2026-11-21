@@ -75,6 +75,15 @@ export function CvUploadCard() {
       setUser(updatedUser)
       toast.success(`CV attached — recruiters will receive ${json.data.cvFileName}`)
 
+      // Cache CV locally for instant preview & download resilience across serverless containers
+      try {
+        if (typeof window !== 'undefined') {
+          window.sessionStorage.setItem(`seewe_cv_${user.id}`, payload.dataUrl)
+        }
+      } catch {
+        /* storage may be restricted */
+      }
+
       // Automatically auto-extract profile details from the uploaded resume!
       try {
         toast.loading('Analyzing resume and auto-filling your profile…', { id: 'cv-extract' })
@@ -101,7 +110,7 @@ export function CvUploadCard() {
           if (ex.location) updatePayload.location = ex.location
           if (ex.currentCompany) updatePayload.company = ex.currentCompany
           if (ex.education) updatePayload.education = ex.education
-          if (ex.summary) updatePayload.bio = ex.summary
+          if (ex.summary) updatePayload.resumeText = ex.summary
 
           if (Object.keys(updatePayload).length > 0) {
             await fetch(`/api/candidates/${encodeURIComponent(user.id)}`, {
@@ -114,14 +123,17 @@ export function CvUploadCard() {
               ...updatePayload,
             })
             toast.success('Profile auto-populated with skills & experience from your resume! 🎉', { id: 'cv-extract' })
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(new CustomEvent('seewe:profile-synced', { detail: updatePayload }))
+            }
           } else {
             toast.dismiss('cv-extract')
           }
         } else {
-          toast.dismiss('cv-extract')
+          toast.error(parseJson.error || 'Could not parse text from this file. Try a PDF or paste text.', { id: 'cv-extract' })
         }
       } catch {
-        toast.dismiss('cv-extract')
+        toast.error('Resume parsing service unavailable — please try again', { id: 'cv-extract' })
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Could not upload the CV')
@@ -188,27 +200,43 @@ export function CvUploadCard() {
             </div>
             <div className="flex shrink-0 flex-wrap gap-2">
               <Button
-                asChild
+                type="button"
                 size="sm"
                 variant="outline"
+                onClick={() => {
+                  const cached = typeof window !== 'undefined' ? window.sessionStorage.getItem(`seewe_cv_${user.id}`) : null
+                  if (cached) {
+                    const w = window.open('')
+                    if (w) {
+                      w.document.title = user.cvFileName || 'CV Preview'
+                      w.document.write(`<iframe src="${cached}" style="width:100vw;height:100vh;border:none;margin:0;padding:0;"></iframe>`)
+                      return
+                    }
+                  }
+                  window.open(`/api/candidates/${encodeURIComponent(user.id)}/cv?inline=1`, '_blank')
+                }}
                 className="min-h-[36px] rounded-lg"
               >
-                <a
-                  href={`/api/candidates/${encodeURIComponent(user.id)}/cv?inline=1`}
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label={`Preview ${user.cvFileName}`}
-                >
-                  <Eye className="size-4" aria-hidden /> View
-                </a>
+                <Eye className="size-4" aria-hidden /> View
               </Button>
-              <Button asChild size="sm" variant="outline" className="min-h-[36px] rounded-lg">
-                <a
-                  href={`/api/candidates/${encodeURIComponent(user.id)}/cv`}
-                  aria-label={`Download ${user.cvFileName}`}
-                >
-                  <Download className="size-4" aria-hidden /> Download
-                </a>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  const cached = typeof window !== 'undefined' ? window.sessionStorage.getItem(`seewe_cv_${user.id}`) : null
+                  if (cached) {
+                    const a = document.createElement('a')
+                    a.href = cached
+                    a.download = user.cvFileName || 'resume.pdf'
+                    a.click()
+                    return
+                  }
+                  window.open(`/api/candidates/${encodeURIComponent(user.id)}/cv`, '_blank')
+                }}
+                className="min-h-[36px] rounded-lg"
+              >
+                <Download className="size-4" aria-hidden /> Download
               </Button>
               <Button
                 size="sm"

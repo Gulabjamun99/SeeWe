@@ -464,6 +464,15 @@ export function CandidateDashboard() {
     if (saved) setDraft((prev) => ({ ...prev, ...saved }))
   }, [user?.id])
 
+  // Automatically refresh form inputs whenever CV upload auto-parses new profile data
+  useEffect(() => {
+    const handleSync = () => {
+      void reloadProfileFromServer()
+    }
+    window.addEventListener('seewe:profile-synced', handleSync)
+    return () => window.removeEventListener('seewe:profile-synced', handleSync)
+  }, [reloadProfileFromServer])
+
   // Keep the visibility switch in sync with server truth
   useEffect(() => {
     if (user) setProfileVisible(user.profileVisible !== false)

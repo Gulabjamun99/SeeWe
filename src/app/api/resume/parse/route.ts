@@ -68,27 +68,71 @@ async function extractTextFromFile(
   const lower = filename.toLowerCase()
 
   if (looksPdf || lower.endsWith('.pdf')) {
-    const parser = new PDFParse({ data: new Uint8Array(buf) })
+    // 1. Try PDFParse instance
     try {
-      const result = await parser.getText()
-      const text = (result?.text ?? '').replace(/\n?-- \d+ of \d+ --\n?/g, '\n').trim()
-      if (!text) {
-        throw new Error(
-          'No readable text found in that PDF — it may be a scan. Paste the text instead'
-        )
+      const parser = new PDFParse({ data: new Uint8Array(buf) })
+      try {
+        const result = await parser.getText()
+        const text = (result?.text ?? '').replace(/\n?-- \d+ of \d+ --\n?/g, '\n').trim()
+        if (text && text.length >= MIN_CHARS) return text
+      } finally {
+        await parser.destroy().catch(() => undefined)
       }
-      return text
     } catch (err) {
-      // Re-wrap library internals (InvalidPDFStructure etc.) in human copy —
-      // but pass through our own "no readable text" message untouched.
-      if (err instanceof Error && err.message.startsWith('No readable text')) throw err
-      console.error('[resume/parse] PDF extraction failed:', err)
-      throw new Error(
-        'That PDF could not be read — it may be corrupted or password-protected. Try another export or paste the text'
-      )
-    } finally {
-      await parser.destroy().catch(() => undefined)
+      console.warn('[resume/parse] PDFParse failed, trying raw stream extractor:', err)
     }
+
+    // 2. Resilient regex stream text extractor (never fails on serverless/missing native binaries)
+    try {
+      const raw = buf.toString('latin1')
+      const pieces: string[] = []
+
+      // Extract literal strings: (text) Tj
+      const tjRegex = /\(([^)\\]*(?:\\.[^)\\]*)*)\)\s*Tj/g
+      let match: RegExpExecArray | null
+      while ((match = tjRegex.exec(raw)) !== null) {
+        const s = match[1].replace(/\\([()\\])/g, '$1').replace(/\\[rnt]/g, ' ')
+        if (s.trim().length > 1) pieces.push(s.trim())
+      }
+
+      // Extract array strings: [(text1) -10 (text2)] TJ
+      const arrayRegex = /\[((?:[^\]\\]|\\.)*)\]\s*TJ/g
+      while ((match = arrayRegex.exec(raw)) !== null) {
+        const inner = match[1]
+        const innerRegex = /\(([^)\\]*(?:\\.[^)\\]*)*)\)/g
+        let innerMatch: RegExpExecArray | null
+        while ((innerMatch = innerRegex.exec(inner)) !== null) {
+          const s = innerMatch[1].replace(/\\([()\\])/g, '$1').replace(/\\[rnt]/g, ' ')
+          if (s.trim().length > 1) pieces.push(s.trim())
+        }
+      }
+
+      if (pieces.length >= 3) {
+        const combined = pieces.join(' ').replace(/\s+/g, ' ').trim()
+        if (combined.length >= MIN_CHARS) return combined
+      }
+
+      // 3. Fallback: extract contiguous printable text blocks
+      const printable = raw.match(/[\x20-\x7E\xA0-\xFF]{4,}/g) || []
+      const filtered = printable.filter(
+        (s) =>
+          !s.startsWith('obj') &&
+          !s.startsWith('endobj') &&
+          !s.startsWith('stream') &&
+          !s.startsWith('endstream') &&
+          !s.includes('/Type') &&
+          !s.includes('/Filter') &&
+          !s.includes('/Font')
+      )
+      const fallbackText = filtered.join(' ').replace(/\s+/g, ' ').trim()
+      if (fallbackText.length >= MIN_CHARS) return fallbackText
+    } catch (streamErr) {
+      console.error('[resume/parse] Stream extraction failed:', streamErr)
+    }
+
+    throw new Error(
+      'No readable text found in that PDF — it may be an image scan. Paste the text instead'
+    )
   }
 
   if (lower.endsWith('.docx')) {

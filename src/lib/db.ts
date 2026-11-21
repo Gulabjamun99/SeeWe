@@ -4,23 +4,26 @@ import path from 'node:path'
 import { PrismaClient } from '@prisma/client'
 
 // Serverless / Cloud fallback: Ensure DATABASE_URL is set so PrismaClient does not throw on Vercel
-if (!process.env.DATABASE_URL) {
-  let dbPath = path.join(process.cwd(), 'db', 'custom.db').replace(/\\/g, '/')
-  // In serverless environments (Vercel / AWS Lambda), the deployment filesystem is read-only.
-  // /tmp is the only writable directory. Copy custom.db to /tmp so writes (user registration, job application, etc.) succeed!
-  if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME) {
-    try {
-      const tmpDb = '/tmp/custom.db'
-      if (!existsSync(tmpDb) && existsSync(dbPath)) {
-        copyFileSync(dbPath, tmpDb)
+// In serverless environments (Vercel / AWS Lambda), the deployment filesystem is read-only.
+// /tmp is the only writable directory. Copy custom.db to /tmp so writes (user registration, job application, etc.) succeed!
+if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME) {
+  try {
+    const tmpDb = '/tmp/custom.db'
+    const sourceDb = path.join(process.cwd(), 'db', 'custom.db')
+    const devDb = path.join(process.cwd(), 'prisma', 'dev.db')
+    if (!existsSync(tmpDb)) {
+      if (existsSync(sourceDb)) {
+        copyFileSync(sourceDb, tmpDb)
+      } else if (existsSync(devDb)) {
+        copyFileSync(devDb, tmpDb)
       }
-      if (existsSync(tmpDb)) {
-        dbPath = tmpDb
-      }
-    } catch (e) {
-      console.warn('Could not copy db to /tmp:', e)
     }
+    process.env.DATABASE_URL = `file:${tmpDb}`
+  } catch (e) {
+    console.warn('Could not copy db to /tmp:', e)
   }
+} else if (!process.env.DATABASE_URL) {
+  const dbPath = path.join(process.cwd(), 'db', 'custom.db').replace(/\\/g, '/')
   process.env.DATABASE_URL = `file:${dbPath}`
 }
 

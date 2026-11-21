@@ -128,7 +128,25 @@ export async function GET(
   try {
     const { id } = await params
     const user = await resolveCandidate(id)
-    if (!user || !user.cvData || !user.cvFileName) {
+    let cvData = user?.cvData
+    let cvFileName = user?.cvFileName
+    let cvMimeType = user?.cvMimeType
+
+    // If User table doesn't have cvData, check resumeVersion table as secondary fallback
+    if (!cvData && user) {
+      const activeVersion = await db.resumeVersion.findFirst({
+        where: { userId: user.id },
+        orderBy: [{ isActive: 'desc' }, { createdAt: 'desc' }],
+        select: { fileName: true, mimeType: true, data: true },
+      })
+      if (activeVersion && activeVersion.data) {
+        cvData = activeVersion.data
+        cvFileName = activeVersion.fileName
+        cvMimeType = activeVersion.mimeType
+      }
+    }
+
+    if (!cvData || !cvFileName) {
       return NextResponse.json({ error: 'No CV attached to this profile' }, { status: 404 })
     }
 
@@ -150,13 +168,13 @@ export async function GET(
       }
     }
 
-    const buf = Buffer.from(user.cvData, 'base64')
+    const buf = Buffer.from(cvData, 'base64')
     if (buf.length === 0 || buf.length > MAX_CV_BYTES * 2) {
       return NextResponse.json({ error: 'Stored CV is unreadable' }, { status: 500 })
     }
 
     const inline = req.nextUrl.searchParams.get('inline') === '1'
-    const safeName = user.cvFileName.replace(/["\\\r\n]/g, '_')
+    const safeName = cvFileName.replace(/["\\\r\n]/g, '_')
 
     // audit trail: hiring-team downloads of candidate CVs are logged
     // (best effort — never break the download itself)
@@ -177,7 +195,7 @@ export async function GET(
     return new NextResponse(new Uint8Array(buf), {
       status: 200,
       headers: {
-        'Content-Type': user.cvMimeType || 'application/octet-stream',
+        'Content-Type': cvMimeType || 'application/octet-stream',
         'Content-Length': String(buf.length),
         'Content-Disposition': `${inline ? 'inline' : 'attachment'}; filename="${safeName}"`,
         'Cache-Control': 'private, max-age=60',
