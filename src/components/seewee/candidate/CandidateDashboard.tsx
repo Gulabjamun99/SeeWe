@@ -435,7 +435,6 @@ export function CandidateDashboard() {
   // Auto-fill from logged-in user; layered over any persisted local draft.
   useEffect(() => {
     const saved = readLocalDraft()
-    if (saved) setPatchFailed(true) // note persists visually while a draft exists
     if (!user) {
       if (!saved) setDraft(EMPTY_DRAFT)
       return
@@ -592,15 +591,22 @@ export function CandidateDashboard() {
        * to retry once connectivity returns.
        */
       let synced = false
+      let errMsg: string | null = null
       try {
         const res = await fetch(`/api/candidates/${encodeURIComponent(user.id)}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(profileFields),
         })
-        synced = res.ok
+        const json = await res.json().catch(() => ({}))
+        if (res.ok) {
+          synced = true
+        } else {
+          errMsg = json?.error || `Server returned status ${res.status}`
+        }
       } catch {
         synced = false
+        errMsg = 'Network request failed — server unreachable'
       }
 
       if (synced) {
@@ -619,7 +625,7 @@ export function CandidateDashboard() {
           /* storage might be unavailable — still keep in-memory state */
         }
         setPatchFailed(true)
-        toast.info('Server unreachable — profile drafted on this device')
+        toast.error(errMsg || 'Could not save profile — drafted locally')
       }
     } finally {
       setSaving(false)

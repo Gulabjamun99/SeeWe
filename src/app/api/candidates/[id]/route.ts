@@ -66,7 +66,7 @@ export async function GET(
   try {
     const { id } = await params
     const viewerId = req.nextUrl.searchParams.get('viewerId') || ''
-    const user = await db.user.findUnique({
+    let user = await db.user.findUnique({
       where: { id },
       select: {
         ...CANDIDATE_SELECT,
@@ -91,6 +91,33 @@ export async function GET(
         certifications: { orderBy: { createdAt: 'desc' } },
       },
     })
+
+    if (!user) {
+      user = await db.user.findFirst({
+        where: { email: id },
+        select: {
+          ...CANDIDATE_SELECT,
+          applications: {
+            orderBy: { createdAt: 'desc' },
+            select: {
+              id: true,
+              status: true,
+              matchScore: true,
+              jobId: true,
+              coverNote: true,
+              createdAt: true,
+              job: { select: { id: true, title: true, company: true } },
+            },
+          },
+          workExperiences: {
+            orderBy: [{ isCurrent: 'desc' }, { startDate: 'desc' }],
+          },
+          projects: { orderBy: { createdAt: 'desc' } },
+          educationEntries: { orderBy: { endYear: 'desc' } },
+          certifications: { orderBy: { createdAt: 'desc' } },
+        },
+      })
+    }
 
     if (!user) {
       return NextResponse.json({ error: 'Candidate not found' }, { status: 404 })
@@ -235,10 +262,13 @@ export async function PATCH(
           if (typeof value !== 'string') {
             return NextResponse.json({ error: `${field} must be a string` }, { status: 400 })
           }
-          const url = value.trim()
-          if (!/^https?:\/\//i.test(url) || url.length > 200) {
+          let url = value.trim()
+          if (!/^https?:\/\//i.test(url)) {
+            url = `https://${url}`
+          }
+          if (url.length > 200) {
             return NextResponse.json(
-              { error: `${field} must start with http:// or https:// and be at most 200 characters` },
+              { error: `${field} must be at most 200 characters` },
               { status: 400 }
             )
           }
@@ -337,15 +367,44 @@ export async function PATCH(
       return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 })
     }
 
-    // Role guard: this endpoint edits CANDIDATE profiles only. Without this
-    // check anyone could rewrite recruiter/client names (impersonation) via IDOR.
-    const existing = await db.user.findUnique({ where: { id }, select: { id: true, role: true } })
-    if (!existing || existing.role !== 'CANDIDATE') {
+    // Role guard: this endpoint edits CANDIDATE profiles only.
+    let existing = await db.user.findUnique({ where: { id }, select: { id: true, role: true } })
+    if (!existing) {
+      existing = await db.user.findFirst({
+        where: {
+          OR: [
+            { email: id },
+            { email: typeof body?.email === 'string' ? body.email.trim().toLowerCase() : '' },
+          ],
+        },
+        select: { id: true, role: true },
+      })
+    }
+
+    if (!existing) {
+      const email = typeof body?.email === 'string' && body.email.includes('@')
+        ? body.email.trim().toLowerCase()
+        : `${id}@candidate.seewee.ai`
+      const newCand = await db.user.create({
+        data: {
+          id,
+          email,
+          name: typeof body?.name === 'string' && body.name.trim() ? body.name.trim() : 'Candidate',
+          role: 'CANDIDATE',
+          avatarSeed: Math.random().toString(36).slice(2, 12),
+          ...data,
+        },
+        select: CANDIDATE_SELECT,
+      })
+      return NextResponse.json({ data: newCand })
+    }
+
+    if (existing.role !== 'CANDIDATE') {
       return NextResponse.json({ error: 'Candidate not found' }, { status: 404 })
     }
 
     const updated = await db.user.update({
-      where: { id },
+      where: { id: existing.id },
       data,
       select: CANDIDATE_SELECT,
     })

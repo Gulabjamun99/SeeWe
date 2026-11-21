@@ -316,14 +316,30 @@ export function NaukriProfileSections({
               </button>
             )}
           </div>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => setCvOpen(true)}
-            className="min-h-[44px] gap-2 rounded-xl"
-          >
-            <FileDown className="h-4 w-4" /> Create CV
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            {user?.cvFileName && (
+              <Button
+                asChild
+                variant="outline"
+                className="min-h-[44px] gap-2 rounded-xl text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800"
+              >
+                <a
+                  href={`/api/candidates/${encodeURIComponent(user.id)}/cv`}
+                  aria-label={`Download attached ${user.cvFileName}`}
+                >
+                  <FileDown className="h-4 w-4" /> Download Attached CV
+                </a>
+              </Button>
+            )}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setCvOpen(true)}
+              className="min-h-[44px] gap-2 rounded-xl bg-blue-50/50 hover:bg-blue-100/60 dark:bg-blue-950/20"
+            >
+              <FileDown className="h-4 w-4 text-blue-600" /> Download / Print CV
+            </Button>
+          </div>
         </CardContent>
       </Card>
 

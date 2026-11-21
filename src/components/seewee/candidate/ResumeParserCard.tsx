@@ -15,6 +15,8 @@ import { useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import {
   BadgeCheck,
+  CheckCircle2,
+  FileText,
   FileUp,
   Info,
   Loader2,
@@ -32,6 +34,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { useAppStore } from '@/store/app-store'
 
 /* ------------------------------------------------------------------ */
 /* Types                                                               */
@@ -136,6 +139,12 @@ export function ResumeParserCard({
   candidateId: string
   onApplied?: () => void
 }) {
+  const user = useAppStore((s) => s.user)
+  const hasExistingData = Boolean(
+    user && (user.headline || user.skills || (user.experienceYears != null && user.experienceYears > 0))
+  )
+  const [showInputForm, setShowInputForm] = useState(false)
+
   /* ------------------------------- state ------------------------------ */
   const [mode, setMode] = useState<'idle' | 'parsing' | 'review'>('idle')
   const [inputTab, setInputTab] = useState<'paste' | 'upload'>('paste')
@@ -395,33 +404,106 @@ export function ResumeParserCard({
         {/* ============================ IDLE ============================ */}
         {mode === 'idle' && (
           <div className="space-y-3">
-            {/* input-mode tabs */}
-            <div
-              role="tablist"
-              aria-label="Resume input method"
-              className="inline-flex h-9 items-center gap-1 rounded-lg bg-slate-100 dark:bg-slate-800 p-1"
-            >
-              {(['paste', 'upload'] as const).map((t) => (
-                <button
-                  key={t}
-                  role="tab"
-                  aria-selected={inputTab === t}
-                  onClick={() => setInputTab(t)}
-                  className={`inline-flex min-h-[28px] items-center gap-1.5 rounded-md px-3 text-xs font-medium transition-colors ${
-                    inputTab === t
-                      ? 'bg-card text-blue-700 shadow-sm'
-                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'
-                  }`}
-                >
-                  {t === 'paste' ? (
-                    <Sparkles className="size-3.5" aria-hidden />
-                  ) : (
-                    <FileUp className="size-3.5" aria-hidden />
+            {hasExistingData && !showInputForm ? (
+              <div className="rounded-xl border border-blue-200/90 bg-card/90 p-4 shadow-sm">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="size-4 text-emerald-600" />
+                    <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">
+                      Profile Active &amp; Synced with Resume
+                    </span>
+                  </div>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setShowInputForm(true)}
+                    className="h-8 gap-1.5 text-xs rounded-lg border-blue-200 text-blue-700 hover:bg-blue-50"
+                  >
+                    <RotateCcw className="size-3.5" /> Re-parse or Upload New
+                  </Button>
+                </div>
+
+                <div className="mt-3 space-y-2 text-xs">
+                  {user?.headline && (
+                    <div className="flex items-start gap-2">
+                      <span className="w-20 shrink-0 text-slate-400 font-medium">Headline:</span>
+                      <span className="font-semibold text-slate-800 dark:text-slate-100">{user.headline}</span>
+                    </div>
                   )}
-                  {t === 'paste' ? 'Paste text' : 'Upload file'}
-                </button>
-              ))}
-            </div>
+                  {user?.skills && (
+                    <div className="flex items-start gap-2">
+                      <span className="w-20 shrink-0 text-slate-400 font-medium">Skills:</span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {user.skills.split(',').map((s) => (
+                          <span
+                            key={s}
+                            className="rounded-md border border-blue-200 bg-blue-50/70 px-2 py-0.5 text-[11px] font-medium text-blue-700 dark:border-blue-800 dark:bg-blue-950/60 dark:text-blue-300"
+                          >
+                            {s.trim()}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {(user?.experienceYears != null || user?.location || user?.company) && (
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-1 text-slate-500 dark:text-slate-400">
+                      {user.experienceYears != null && (
+                        <span>💼 <strong>{user.experienceYears}</strong> years experience</span>
+                      )}
+                      {user.company && (
+                        <span>🏢 <strong>{user.company}</strong></span>
+                      )}
+                      {user.location && (
+                        <span>📍 <strong>{user.location}</strong></span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <>
+                {/* input-mode tabs */}
+                <div className="flex items-center justify-between gap-2">
+                  <div
+                    role="tablist"
+                    aria-label="Resume input method"
+                    className="inline-flex h-9 items-center gap-1 rounded-lg bg-slate-100 dark:bg-slate-800 p-1"
+                  >
+                    {(['paste', 'upload'] as const).map((t) => (
+                      <button
+                        key={t}
+                        role="tab"
+                        aria-selected={inputTab === t}
+                        onClick={() => setInputTab(t)}
+                        className={`inline-flex min-h-[28px] items-center gap-1.5 rounded-md px-3 text-xs font-medium transition-colors ${
+                          inputTab === t
+                            ? 'bg-card text-blue-700 shadow-sm'
+                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'
+                        }`}
+                      >
+                        {t === 'paste' ? (
+                          <Sparkles className="size-3.5" aria-hidden />
+                        ) : (
+                          <FileUp className="size-3.5" aria-hidden />
+                        )}
+                        {t === 'paste' ? 'Paste text' : 'Upload file'}
+                      </button>
+                    ))}
+                  </div>
+
+                  {hasExistingData && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setShowInputForm(false)}
+                      className="h-8 text-xs text-slate-500 hover:text-slate-700"
+                    >
+                      Cancel
+                    </Button>
+                  )}
+                </div>
 
             {inputTab === 'paste' ? (
               <div className="space-y-1.5">
@@ -531,8 +613,10 @@ Experience: Senior Engineer at Razorpay (2021–present)…`}
             >
               <Sparkles className="size-4" aria-hidden /> ✨ Analyze with AI
             </Button>
-          </div>
+          </>
         )}
+      </div>
+    )}
 
         {/* =========================== PARSING ========================== */}
         {mode === 'parsing' && (

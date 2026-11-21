@@ -61,13 +61,63 @@ export function CvUploadCard() {
       if (!res.ok || json.error || !json.data) {
         throw new Error(json.error ?? 'Upload failed')
       }
-      setUser({
+      const updatedUser = {
         ...user,
         cvFileName: json.data.cvFileName,
         cvMimeType: payload.mimeType,
         cvUploadedAt: new Date().toISOString(),
-      })
+      }
+      setUser(updatedUser)
       toast.success(`CV attached — recruiters will receive ${json.data.cvFileName}`)
+
+      // Automatically auto-extract profile details from the uploaded resume!
+      try {
+        toast.loading('Analyzing resume and auto-filling your profile…', { id: 'cv-extract' })
+        const parseRes = await fetch('/api/resume/parse', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            file_base64: payload.dataUrl,
+            filename: file.name,
+          }),
+        })
+        const parseJson = await parseRes.json().catch(() => ({}))
+        if (parseRes.ok && parseJson?.data?.extracted) {
+          const ex = parseJson.data.extracted
+          const updatePayload: Record<string, unknown> = {}
+          if (ex.headline) updatePayload.headline = ex.headline
+          if (ex.skills && Array.isArray(ex.skills) && ex.skills.length > 0) {
+            updatePayload.skills = ex.skills.join(', ')
+          }
+          if (ex.experienceYears != null) {
+            const exp = Number(ex.experienceYears)
+            if (!Number.isNaN(exp)) updatePayload.experienceYears = exp
+          }
+          if (ex.location) updatePayload.location = ex.location
+          if (ex.currentCompany) updatePayload.company = ex.currentCompany
+          if (ex.education) updatePayload.education = ex.education
+          if (ex.summary) updatePayload.bio = ex.summary
+
+          if (Object.keys(updatePayload).length > 0) {
+            await fetch(`/api/candidates/${encodeURIComponent(user.id)}`, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(updatePayload),
+            })
+            setUser({
+              ...updatedUser,
+              ...updatePayload,
+            })
+            toast.success('Profile auto-populated with skills & experience from your resume! 🎉', { id: 'cv-extract' })
+          } else {
+            toast.dismiss('cv-extract')
+          }
+        } else {
+          toast.dismiss('cv-extract')
+        }
+      } catch {
+        toast.dismiss('cv-extract')
+      }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Could not upload the CV')
     } finally {

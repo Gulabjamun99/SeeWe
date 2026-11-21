@@ -17,6 +17,35 @@ function str(v: unknown, max = 400): string | null {
   return t ? t.slice(0, max) : null
 }
 
+async function resolveCandidateId(idOrEmail: string): Promise<string> {
+  const decoded = decodeURIComponent(idOrEmail).trim()
+  let user = await db.user.findFirst({
+    where: {
+      OR: [
+        { id: decoded },
+        { email: decoded.toLowerCase() },
+      ],
+    },
+    select: { id: true },
+  })
+
+  if (!user) {
+    const isEmail = decoded.includes('@')
+    const email = isEmail ? decoded.toLowerCase() : `${decoded}@candidate.seewe.local`
+    user = await db.user.create({
+      data: {
+        id: decoded.startsWith('c') && decoded.length > 20 ? decoded : undefined,
+        name: isEmail ? decoded.split('@')[0] : 'Candidate',
+        email,
+        role: 'candidate',
+      },
+      select: { id: true },
+    })
+  }
+
+  return user.id
+}
+
 async function loadSections(userId: string) {
   const [experiences, projects, education, certifications] = await Promise.all([
     db.workExperience.findMany({ where: { userId }, orderBy: [{ isCurrent: 'desc' }, { startDate: 'desc' }] }),
@@ -34,9 +63,8 @@ export async function GET(
 ) {
   try {
     const { id } = await params
-    const user = await db.user.findUnique({ where: { id }, select: { id: true } })
-    if (!user) return NextResponse.json({ error: 'Candidate not found' }, { status: 404 })
-    const sections = await loadSections(id)
+    const userId = await resolveCandidateId(id)
+    const sections = await loadSections(userId)
     return NextResponse.json({ data: sections })
   } catch (err) {
     console.error('GET /api/candidates/[id]/sections failed:', err)
@@ -51,8 +79,7 @@ export async function POST(
 ) {
   try {
     const { id } = await params
-    const owner = await db.user.findUnique({ where: { id }, select: { id: true } })
-    if (!owner) return NextResponse.json({ error: 'Candidate not found' }, { status: 404 })
+    const userId = await resolveCandidateId(id)
     const body = await req.json().catch(() => null)
     if (!isSectionType(body?.type)) {
       return NextResponse.json(
@@ -74,7 +101,7 @@ export async function POST(
       const isCurrent = Boolean(body.isCurrent)
       await db.workExperience.create({
         data: {
-          userId: id,
+          userId,
           title,
           company,
           isCurrent,
@@ -91,7 +118,7 @@ export async function POST(
       }
       await db.userProject.create({
         data: {
-          userId: id,
+          userId,
           title,
           techStack: str(body.techStack, 300),
           startDate: str(body.startDate, 7),
@@ -111,7 +138,7 @@ export async function POST(
       }
       await db.educationEntry.create({
         data: {
-          userId: id,
+          userId,
           degree,
           institution,
           startYear: str(body.startYear, 9),
@@ -126,7 +153,7 @@ export async function POST(
       }
       await db.certification.create({
         data: {
-          userId: id,
+          userId,
           name,
           issuer: str(body.issuer, 160),
           year: str(body.year, 9),
@@ -135,7 +162,7 @@ export async function POST(
       })
     }
 
-    return NextResponse.json({ data: await loadSections(id) })
+    return NextResponse.json({ data: await loadSections(userId) })
   } catch (err) {
     console.error('POST /api/candidates/[id]/sections failed:', err)
     return NextResponse.json({ error: 'Failed to save section item' }, { status: 500 })
@@ -149,6 +176,7 @@ export async function PATCH(
 ) {
   try {
     const { id } = await params
+    const userId = await resolveCandidateId(id)
     const body = await req.json().catch(() => null)
     if (!isSectionType(body?.type) || !body?.itemId) {
       return NextResponse.json({ error: 'type and itemId are required' }, { status: 400 })
@@ -158,7 +186,7 @@ export async function PATCH(
     if (body.type === 'experience') {
       const isCurrent = Boolean(body.isCurrent)
       await db.workExperience.updateMany({
-        where: { id: itemId, userId: id },
+        where: { id: itemId, userId },
         data: {
           title: str(body.title, 120) ?? undefined,
           company: str(body.company, 120) ?? undefined,
@@ -171,7 +199,7 @@ export async function PATCH(
       })
     } else if (body.type === 'project') {
       await db.userProject.updateMany({
-        where: { id: itemId, userId: id },
+        where: { id: itemId, userId },
         data: {
           title: str(body.title, 140) ?? undefined,
           techStack: str(body.techStack, 300),
@@ -183,7 +211,7 @@ export async function PATCH(
       })
     } else if (body.type === 'education') {
       await db.educationEntry.updateMany({
-        where: { id: itemId, userId: id },
+        where: { id: itemId, userId },
         data: {
           degree: str(body.degree, 160) ?? undefined,
           institution: str(body.institution, 160) ?? undefined,
@@ -194,7 +222,7 @@ export async function PATCH(
       })
     } else {
       await db.certification.updateMany({
-        where: { id: itemId, userId: id },
+        where: { id: itemId, userId },
         data: {
           name: str(body.name, 160) ?? undefined,
           issuer: str(body.issuer, 160),
@@ -204,7 +232,7 @@ export async function PATCH(
       })
     }
 
-    return NextResponse.json({ data: await loadSections(id) })
+    return NextResponse.json({ data: await loadSections(userId) })
   } catch (err) {
     console.error('PATCH /api/candidates/[id]/sections failed:', err)
     return NextResponse.json({ error: 'Failed to update section item' }, { status: 500 })
@@ -218,21 +246,22 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params
+    const userId = await resolveCandidateId(id)
     const type = req.nextUrl.searchParams.get('type')
     const itemId = req.nextUrl.searchParams.get('itemId') ?? ''
     if (!isSectionType(type) || !itemId) {
       return NextResponse.json({ error: 'type and itemId are required' }, { status: 400 })
     }
     if (type === 'experience') {
-      await db.workExperience.deleteMany({ where: { id: itemId, userId: id } })
+      await db.workExperience.deleteMany({ where: { id: itemId, userId } })
     } else if (type === 'project') {
-      await db.userProject.deleteMany({ where: { id: itemId, userId: id } })
+      await db.userProject.deleteMany({ where: { id: itemId, userId } })
     } else if (type === 'education') {
-      await db.educationEntry.deleteMany({ where: { id: itemId, userId: id } })
+      await db.educationEntry.deleteMany({ where: { id: itemId, userId } })
     } else {
-      await db.certification.deleteMany({ where: { id: itemId, userId: id } })
+      await db.certification.deleteMany({ where: { id: itemId, userId } })
     }
-    return NextResponse.json({ data: await loadSections(id) })
+    return NextResponse.json({ data: await loadSections(userId) })
   } catch (err) {
     console.error('DELETE /api/candidates/[id]/sections failed:', err)
     return NextResponse.json({ error: 'Failed to delete section item' }, { status: 500 })

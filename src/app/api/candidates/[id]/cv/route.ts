@@ -21,10 +21,16 @@ const CV_META_SELECT = {
 }
 
 async function loadCandidate(id: string) {
-  const user = await db.user.findUnique({
+  let user = await db.user.findUnique({
     where: { id },
     select: { id: true, role: true, ...CV_META_SELECT, cvData: true },
   })
+  if (!user) {
+    user = await db.user.findFirst({
+      where: { email: id },
+      select: { id: true, role: true, ...CV_META_SELECT, cvData: true },
+    })
+  }
   return user
 }
 

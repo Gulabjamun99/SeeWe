@@ -169,6 +169,17 @@ export default function VideoResumeCard({
     void loadMeta()
   }, [loadMeta])
 
+  // Attach camera preview stream as soon as video DOM node mounts
+  useEffect(() => {
+    if (mode === 'recording' && videoRef.current && streamRef.current) {
+      if (videoRef.current.srcObject !== streamRef.current) {
+        videoRef.current.srcObject = streamRef.current
+        videoRef.current.muted = true
+        videoRef.current.play().catch(() => {})
+      }
+    }
+  }, [mode])
+
   /** Free camera/mic + timers + blob URLs. */
   const teardown = useCallback(() => {
     if (timerRef.current) {
@@ -225,6 +236,10 @@ export default function VideoResumeCard({
         audio: true,
       })
       streamRef.current = stream
+      setMode('recording')
+      startedAtRef.current = Date.now()
+      setElapsed(0)
+
       if (videoRef.current) {
         videoRef.current.srcObject = stream
         videoRef.current.muted = true
@@ -262,9 +277,6 @@ export default function VideoResumeCard({
       }
       recorder.start(500)
 
-      startedAtRef.current = Date.now()
-      setElapsed(0)
-      setMode('recording')
       timerRef.current = setInterval(() => {
         const secs = (Date.now() - startedAtRef.current) / 1000
         setElapsed(secs)
@@ -581,7 +593,14 @@ export default function VideoResumeCard({
               <div className="mt-4 space-y-3">
                 <div className="relative overflow-hidden rounded-xl bg-stone-900">
                   <video
-                    ref={videoRef}
+                    ref={(el) => {
+                      videoRef.current = el
+                      if (el && streamRef.current && el.srcObject !== streamRef.current) {
+                        el.srcObject = streamRef.current
+                        el.muted = true
+                        el.play().catch(() => {})
+                      }
+                    }}
                     autoPlay
                     muted
                     playsInline
