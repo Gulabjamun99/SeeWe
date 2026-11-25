@@ -66,6 +66,13 @@ import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Textarea } from '@/components/ui/textarea'
 import { useAppStore } from '@/store/app-store'
+import {
+  DEFAULT_INTERVIEW_VOICE,
+  getIndianVoiceMeta,
+  pickFallbackEnglishVoice,
+  pickIndianBrowserVoice,
+  type IndianVoiceId,
+} from '@/lib/interview-voices'
 import { InterviewTranscript } from './InterviewTranscript'
 import { SpeakerCheck } from './SpeakerCheck'
 import type {
@@ -471,8 +478,17 @@ export function InterviewRoom({ className }: InterviewRoomProps) {
   const [finalInterview, setFinalInterview] = useState<{ id: string; jobTitle: string } | null>(null)
 
   /* --------------------------- AI interviewer voice ----------------------- */
-  // One fixed voice for everyone — no picker, no asking (user decision).
-  const aiVoiceRef = useRef(AI_VOICE)
+  const [aiVoice, setAiVoice] = useState<IndianVoiceId>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = window.sessionStorage.getItem('seewe_interview_voice')
+      if (saved) return getIndianVoiceMeta(saved).id
+    }
+    return DEFAULT_INTERVIEW_VOICE
+  })
+  const aiVoiceRef = useRef<IndianVoiceId>(aiVoice)
+  useEffect(() => {
+    aiVoiceRef.current = aiVoice
+  }, [aiVoice])
 
   /* ------------------------------ media / voice --------------------------- */
   const [camState, setCamState] = useState<'off' | 'on' | 'denied'>('off')
@@ -760,28 +776,31 @@ export function InterviewRoom({ className }: InterviewRoomProps) {
       killVoice(false)
       const epoch = speakEpochRef.current
 
-      // 1. Browser Speech Synthesis with natural Indian English voice preference
+      const voiceMeta = getIndianVoiceMeta(aiVoiceRef.current)
+
+      // 1. Browser Speech Synthesis with gender-matched Indian English voice preference
       if ('speechSynthesis' in window) {
         try {
           const synth = window.speechSynthesis
-          const voices = synth.getVoices()
-          const indianVoice = voices.find(
-            (v) =>
-              v.lang.toLowerCase().replace('_', '-').startsWith('en-in') ||
-              v.lang.toLowerCase().startsWith('hi') ||
-              v.name.toLowerCase().includes('india') ||
-              v.name.toLowerCase().includes('neerja') ||
-              v.name.toLowerCase().includes('prabhat') ||
-              v.name.toLowerCase().includes('heera') ||
-              v.name.toLowerCase().includes('rishi')
-          ) || voices.find((v) => v.lang.startsWith('en'))
+          let voices = synth.getVoices()
+          if (!voices.length) {
+            await new Promise<void>((resolve) => {
+              const t = setTimeout(resolve, 250)
+              synth.onvoiceschanged = () => {
+                clearTimeout(t)
+                resolve()
+              }
+            })
+            voices = synth.getVoices()
+          }
+          const indianVoice = pickIndianBrowserVoice(voices, voiceMeta)
 
-          if (indianVoice || voices.length > 0) {
+          if (indianVoice) {
             synth.cancel()
             const utterance = new SpeechSynthesisUtterance(text)
-            if (indianVoice) utterance.voice = indianVoice
-            utterance.rate = 0.88 // Clear, steady pacing
-            utterance.pitch = 1.0
+            utterance.voice = indianVoice
+            utterance.rate = voiceMeta.rate
+            utterance.pitch = voiceMeta.pitch
 
             utterance.onstart = () => {
               if (epoch === speakEpochRef.current && !recorderRef.current && !mutedRef.current) {
@@ -805,12 +824,12 @@ export function InterviewRoom({ className }: InterviewRoomProps) {
         }
       }
 
-      // 2. Fallback to server-side TTS
+      // 2. Fallback to server-side TTS with selected Indian voice
       try {
         const { ok, data, error } = await postJson<string>('/api/tts', {
           text,
-          voice: aiVoiceRef.current,
-          speed: 0.85,
+          voice: voiceMeta.id,
+          speed: voiceMeta.rate,
         })
         const url = typeof data === 'string' ? data : ''
         if (!ok || !url.startsWith('data:audio')) throw new Error(error ?? 'TTS failed')
@@ -826,9 +845,43 @@ export function InterviewRoom({ className }: InterviewRoomProps) {
         }
         setSpeaking(true)
         await el.play()
+        return
       } catch {
-        killVoice(true)
+        /* fallback to generic English browser voice */
       }
+
+      // 3. Final fallback: English browser voice tuned to voiceMeta pitch/rate
+      if ('speechSynthesis' in window) {
+        try {
+          const synth = window.speechSynthesis
+          const fallback = pickFallbackEnglishVoice(synth.getVoices(), voiceMeta.gender)
+          if (fallback) {
+            synth.cancel()
+            const utterance = new SpeechSynthesisUtterance(text)
+            utterance.voice = fallback
+            utterance.rate = voiceMeta.rate
+            utterance.pitch = voiceMeta.pitch
+            utterance.onstart = () => {
+              if (epoch === speakEpochRef.current && !recorderRef.current && !mutedRef.current) {
+                setSpeaking(true)
+              } else {
+                synth.cancel()
+              }
+            }
+            utterance.onend = () => {
+              if (epoch === speakEpochRef.current) setSpeaking(false)
+            }
+            utterance.onerror = () => {
+              if (epoch === speakEpochRef.current) setSpeaking(false)
+            }
+            synth.speak(utterance)
+            return
+          }
+        } catch {
+          /* noop */
+        }
+      }
+      killVoice(true)
     },
     [killVoice]
   )
@@ -1982,9 +2035,15 @@ export function InterviewRoom({ className }: InterviewRoomProps) {
                     </div>
                   </div>
 
-                  {/* speakers — hear the actual interviewer voice before Q1 */}
+                  {/* speakers — hear & pick the Indian AI interviewer voice before Q1 */}
                   <div className="mt-2.5">
-                    <SpeakerCheck />
+                    <SpeakerCheck
+                      voiceId={aiVoice}
+                      onVoiceChange={(v) => {
+                        setAiVoice(v)
+                        aiVoiceRef.current = v
+                      }}
+                    />
                   </div>
                   {micCheck === 'fail' && (
                     <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2">

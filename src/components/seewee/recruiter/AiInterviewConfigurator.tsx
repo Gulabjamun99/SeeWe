@@ -40,6 +40,8 @@ import {
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import type { AiInterviewQuestion } from '@/lib/types'
+import { DEFAULT_INTERVIEW_VOICE, type IndianVoiceId } from '@/lib/interview-voices'
+import { IndianVoiceSelector } from '@/components/seewee/interview/IndianVoiceSelector'
 
 const MAX_QUESTIONS = 20
 /** Standard presets — capped at 3 minutes per the hiring-team request. */
@@ -82,6 +84,8 @@ export interface AiInterviewConfiguratorProps {
   jobId?: string
   /** unsaved draft context for the suggestion API */
   draft?: { title?: string; skills?: string; jdText?: string }
+  interviewerVoice?: IndianVoiceId
+  onVoiceChange?: (voice: IndianVoiceId) => void
 }
 
 export function AiInterviewConfigurator({
@@ -89,7 +93,24 @@ export function AiInterviewConfigurator({
   onChange,
   jobId,
   draft,
+  interviewerVoice,
+  onVoiceChange,
 }: AiInterviewConfiguratorProps) {
+  const [localVoice, setLocalVoice] = useState<IndianVoiceId>(
+    interviewerVoice ?? DEFAULT_INTERVIEW_VOICE
+  )
+  const activeVoice = interviewerVoice ?? localVoice
+  const handleVoiceSelect = (v: IndianVoiceId) => {
+    setLocalVoice(v)
+    try {
+      if (typeof window !== 'undefined') {
+        window.sessionStorage.setItem('seewe_interview_voice', v)
+      }
+    } catch {
+      /* noop */
+    }
+    onVoiceChange?.(v)
+  }
   const [suggesting, setSuggesting] = useState(false)
   const [suggestions, setSuggestions] = useState<Suggestion[] | null>(null)
   // [build-batch-3] provenance of the last suggestion run ('ai' = live model,
@@ -192,6 +213,14 @@ export function AiInterviewConfigurator({
 
   return (
     <div className="space-y-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/40 p-4">
+      {/* Indian AI Interviewer Voice picker + preview */}
+      <IndianVoiceSelector
+        compact
+        value={activeVoice}
+        onChange={handleVoiceSelect}
+        label="AI Interviewer Voice (for asking questions)"
+      />
+
       {/* header row */}
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>

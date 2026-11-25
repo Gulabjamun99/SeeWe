@@ -3,6 +3,8 @@
 // question set is stored as a JSON string on Job.aiInterviewConfig; this module
 // guarantees only sane, safe shapes ever reach the database.
 
+import { isValidIndianVoiceId, type IndianVoiceId } from './interview-voices'
+
 export interface ParsedAiQuestion {
   id: string
   text: string
@@ -13,6 +15,7 @@ export interface ParsedAiQuestion {
 export interface ParsedAiConfig {
   questions: ParsedAiQuestion[]
   includeProfileQuestions: boolean
+  interviewerVoice?: IndianVoiceId
 }
 
 export const AI_QUESTION_LIMIT = 20
@@ -82,6 +85,9 @@ export function parseAiInterviewConfig(
     config: {
       questions,
       includeProfileQuestions: raw.includeProfileQuestions !== false,
+      ...(isValidIndianVoiceId(raw.interviewerVoice)
+        ? { interviewerVoice: raw.interviewerVoice.toLowerCase() as IndianVoiceId }
+        : {}),
     },
   }
 }

@@ -1,47 +1,34 @@
 // SeeWe - POST /api/tts
-// Text-to-speech for the AI interviewer's ONE fixed voice via z-ai-web-dev-sdk.
+// Text-to-speech for the AI interviewer's selectable Indian English voices
+// (3 Indian Male + 3 Indian Female) via z-ai-web-dev-sdk.
 // Returns { data: 'data:audio/wav;base64,...' } so the frontend can play it
 // directly in an <audio> element. Includes a small LRU-ish cache.
-// Every interview uses the same voice: 'jam' at a slow 0.85 speed so every
-// question is easy to follow — the candidate can replay it, and the AI stops
-// talking the moment the candidate starts answering (barge-in).
 
 import { NextResponse } from 'next/server'
 import { getZAI } from '@/lib/ai-client'
+import {
+  DEFAULT_INTERVIEW_VOICE,
+  getIndianVoiceMeta,
+  INDIAN_INTERVIEW_VOICES,
+} from '@/lib/interview-voices'
 
 const HARD_LIMIT = 900 // API limit is 1024 chars; we cut earlier, at sentence boundary when possible
-const KNOWN_VOICES = ['arjun', 'jam', 'alloy', 'echo', 'onyx'] as const
 const CACHE_MAX = 60
-
-/**
- * Interviewer voice — ONE fixed voice for every interview (Indian English "Arjun").
- * Natural, clear, deliberate pacing.
- */
-const VOICE_CATALOG: Array<{
-  id: (typeof KNOWN_VOICES)[number]
-  label: string
-  gender: 'male' | 'female'
-  accent: string
-  description: string
-}> = [
-  {
-    id: 'arjun',
-    label: 'Arjun',
-    gender: 'male',
-    accent: 'Indian English interviewer voice',
-    description:
-      'The SeeWe AI interviewer — clear, easy-to-follow Indian English voice that reads every question with deliberate pacing.',
-  },
-]
 
 export async function GET() {
   return NextResponse.json({
     data: {
-      voices: VOICE_CATALOG,
-      defaultVoice: 'arjun',
+      voices: INDIAN_INTERVIEW_VOICES.map((v) => ({
+        id: v.id,
+        label: v.label,
+        gender: v.gender,
+        accent: v.accent,
+        description: v.tagline,
+      })),
+      defaultVoice: DEFAULT_INTERVIEW_VOICE,
       speed: 0.88,
       accentNote:
-        'Every interview uses one fixed AI interviewer voice — consistent, clear, Indian English accent.',
+        'Choose from 3 Indian Male and 3 Indian Female AI interviewer voices for clear, natural question delivery.',
     },
   })
 }
@@ -80,13 +67,12 @@ export async function POST(request: Request) {
     const body = await request.json().catch(() => ({}))
     const rawText = typeof body?.text === 'string' ? body.text : ''
     const requestedVoice = typeof body?.voice === 'string' ? body.voice.toLowerCase() : ''
-    const voice = (KNOWN_VOICES as readonly string[]).includes(requestedVoice)
-      ? requestedVoice
-      : 'arjun'
+    const voiceMeta = getIndianVoiceMeta(requestedVoice)
+    const voice = voiceMeta.serverVoice
     // Slow-speech support (user request: AI must NOT rush the questions).
-    // Clamp into the API's 0.5–2.0 window; default stays 1.0.
-    const rawSpeed = typeof body?.speed === 'number' ? body.speed : 1.0
-    const speed = Number.isFinite(rawSpeed) ? Math.min(2.0, Math.max(0.5, rawSpeed)) : 1.0
+    // Clamp into the API's 0.5–2.0 window; default uses the voice's tuned rate.
+    const rawSpeed = typeof body?.speed === 'number' ? body.speed : voiceMeta.rate
+    const speed = Number.isFinite(rawSpeed) ? Math.min(2.0, Math.max(0.5, rawSpeed)) : voiceMeta.rate
 
     if (!rawText.trim()) {
       return NextResponse.json({ error: 'text is required' }, { status: 400 })

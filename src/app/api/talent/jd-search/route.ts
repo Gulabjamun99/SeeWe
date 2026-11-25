@@ -270,7 +270,14 @@ export async function POST(req: NextRequest) {
         else { expScore = 0.25; expState = 'FAIL'; expDetail = `${exp} yrs vs ${minExp}–${upper} — well below.` }
       }
 
-      // ── CORE GATE: role, skills, or responsibilities decide ──────
+      // ── STRICT CORE GATE: candidate must genuinely fit the JD ───────────
+      // 1) If the JD lists must-have skills, 0 skill hits ALWAYS fails (a generic
+      //    title word like "Manager" or "Engineer" can never bypass 0 skills).
+      if (jd.mustHaveSkills.length > 0 && mustHits.length === 0) {
+        screenedOut++
+        continue
+      }
+
       const coreWeightRaw =
         (mustCoverage !== null || goodCoverage !== null ? W.mustSkills : 0) +
         (roleScore !== null ? W.role : 0) +
@@ -278,17 +285,31 @@ export async function POST(req: NextRequest) {
       const coreScore =
         coreWeightRaw === 0
           ? null
-          : ((mustCoverage ?? 0) * W.mustSkills * 0.75 + (goodCoverage ?? 0) * W.mustSkills * 0.25 +
+          : ((mustCoverage ?? 0) * W.mustSkills * 0.8 + (goodCoverage ?? 0) * W.mustSkills * 0.2 +
               (roleScore ?? 0) * W.role + (resp.coverage ?? 0) * W.responsibilities) / coreWeightRaw
 
-      // Pass gate if candidate has either sufficient core skills (>=25%) OR matching role (>=30%) OR overall coreScore >= 0.20
-      const passesSkillGate = mustCoverage !== null && mustCoverage >= 0.25
-      const passesRoleGate = roleScore !== null && roleScore >= 0.3
-      const passesOverallCore = coreScore !== null && coreScore >= 0.20
+      // Require >= 40% must-have skills (or >= 2 hits when JD has 3+ skills),
+      // OR strong role alignment (>= 0.45) WITH at least 1 must-have skill hit,
+      // OR overall coreScore >= 0.35.
+      const minSkillCount = jd.mustHaveSkills.length >= 3 ? 2 : 1
+      const passesSkillGate =
+        mustCoverage !== null && mustCoverage >= 0.4 && mustHits.length >= minSkillCount
+      const passesRoleGate =
+        roleScore !== null && roleScore >= 0.45 && (jd.mustHaveSkills.length === 0 || mustHits.length >= 1)
+      const passesOverallCore = coreScore !== null && coreScore >= 0.35
 
       if (!passesSkillGate && !passesRoleGate && !passesOverallCore) {
         screenedOut++
         continue // genuinely off-domain profile — excluded
+      }
+
+      // Experience sanity gate: if JD asks for senior exp (e.g. 5+ yrs) and candidate
+      // has less than 40% of minimum years (e.g. fresher), exclude unless skills > 70%.
+      if (minExp !== null && minExp >= 3 && exp !== null && exp !== undefined) {
+        if (exp < minExp * 0.4 && (mustCoverage ?? 0) < 0.7) {
+          screenedOut++
+          continue
+        }
       }
 
       const skillRaw = (mustCoverage ?? 0) * 0.75 + (goodCoverage ?? 0) * 0.25

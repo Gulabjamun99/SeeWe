@@ -191,7 +191,20 @@ export function TalentSearch() {
   // ── search mode + privacy gate ─────────────────────────────────────────
   // The candidate database stays HIDDEN until the recruiter runs their first
   // search — before that the panel shows search guidance + sponsored slots.
-  const [mode, setMode] = useState<'keyword' | 'jd'>('keyword')
+  const [mode, setMode] = useState<'normal' | 'boolean' | 'jd'>('normal')
+
+  const switchMode = (next: 'normal' | 'boolean' | 'jd') => {
+    setMode(next)
+    if (next === 'normal') {
+      setBooleanOpen(false)
+      setFilters((prev) => ({ ...prev, booleanMode: false }))
+      if (armedRef.current) setCommitted((prev) => ({ ...prev, booleanMode: false }))
+    } else if (next === 'boolean') {
+      setBooleanOpen(true)
+      setFilters((prev) => ({ ...prev, booleanMode: true }))
+      if (armedRef.current) setCommitted((prev) => ({ ...prev, booleanMode: true }))
+    }
+  }
   const [armed, setArmed] = useState(false)
   const [jdText, setJdText] = useState('')
   const [jdLoading, setJdLoading] = useState(false)
@@ -470,7 +483,8 @@ export function TalentSearch() {
     // back to the private landing state — the database hides again
     armedRef.current = false
     setArmed(false)
-    setMode('keyword')
+    setMode('normal')
+    setBooleanOpen(false)
     setJdResults([])
     setJdInfo(null)
     setJdError(null)
@@ -543,7 +557,7 @@ export function TalentSearch() {
     const f = savedQueryToFilters(row.query)
     armedRef.current = true
     setArmed(true)
-    setMode('keyword')
+    setMode(f.booleanMode ? 'boolean' : 'normal')
     setFilters(f)
     setCommitted(f)
     setBooleanOpen(f.booleanMode)
@@ -801,44 +815,59 @@ export function TalentSearch() {
 
       {/* ── search header ─────────────────────────────────────────────── */}
       <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-        {/* mode switch: keyword · boolean vs AI JD search */}
-        <div className="mb-2 flex flex-wrap items-center gap-2" role="tablist" aria-label="Search mode">
+        {/* mode switch: Normal Search · Boolean Search · AI JD Match */}
+        <div className="mb-2.5 flex flex-wrap items-center gap-2" role="tablist" aria-label="Search mode">
           <div className="flex overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700">
             <button
               type="button"
               role="tab"
-              aria-selected={mode === 'keyword'}
-              onClick={() => setMode('keyword')}
+              aria-selected={mode === 'normal'}
+              onClick={() => switchMode('normal')}
               className={`flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-semibold transition ${
-                mode === 'keyword'
+                mode === 'normal'
                   ? 'bg-teal-600 text-white'
                   : 'bg-white text-slate-500 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800'
               }`}
             >
-              <Search className="size-3.5" aria-hidden /> Keyword / Boolean
+              <Search className="size-3.5" aria-hidden /> Normal Search
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={mode === 'boolean'}
+              onClick={() => switchMode('boolean')}
+              className={`flex items-center gap-1.5 border-l border-slate-200 px-3 py-1.5 text-[11px] font-semibold transition dark:border-slate-700 ${
+                mode === 'boolean'
+                  ? 'bg-teal-600 text-white'
+                  : 'bg-white text-slate-500 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800'
+              }`}
+            >
+              <Braces className="size-3.5" aria-hidden /> Boolean Search
             </button>
             <button
               type="button"
               role="tab"
               aria-selected={mode === 'jd'}
-              onClick={() => setMode('jd')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-semibold transition ${
+              onClick={() => switchMode('jd')}
+              className={`flex items-center gap-1.5 border-l border-slate-200 px-3 py-1.5 text-[11px] font-semibold transition dark:border-slate-700 ${
                 mode === 'jd'
                   ? 'bg-teal-600 text-white'
                   : 'bg-white text-slate-500 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800'
               }`}
             >
-              <Sparkles className="size-3.5" aria-hidden /> AI JD match
+              <Sparkles className="size-3.5" aria-hidden /> AI JD Match
             </button>
           </div>
           <span className="hidden text-[10px] text-slate-400 sm:inline">
-            {mode === 'keyword'
-              ? 'Search the database by keywords, Boolean logic and filters.'
-              : 'Paste a job description — the engine reads it and finds the matching CVs for you.'}
+            {mode === 'normal'
+              ? 'Search by skills, role, company or keywords with structured filters.'
+              : mode === 'boolean'
+                ? 'Combine AND, OR, NOT and exact "phrases" to target exact profiles.'
+                : 'Paste a complete JD — AI extracts key skills, role & experience, then finds exact matching CVs.'}
           </span>
         </div>
 
-        {mode === 'keyword' ? (
+        {mode !== 'jd' ? (
           <>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <div className="relative flex-1">
@@ -916,24 +945,24 @@ export function TalentSearch() {
           </div>
         </div>
 
-        <div className="mt-2">
-          <BooleanPanel
-            enabled={booleanOpen}
-            onToggle={(on) => {
-              setBooleanOpen(on)
-              if (!on) return
-              // prefill guided rows from a current raw query is not reversible — start clean
-            }}
-            rawQuery={filters.q}
-            onRawQuery={(q) => setFilters((prev) => ({ ...prev, q }))}
-            must={must}
-            anyOf={anyOf}
-            not={not}
-            onMust={setMust}
-            onAnyOf={setAnyOf}
-            onNot={setNot}
-          />
-        </div>
+        {mode === 'boolean' && (
+          <div className="mt-2">
+            <BooleanPanel
+              enabled={true}
+              onToggle={(on) => {
+                if (!on) switchMode('normal')
+              }}
+              rawQuery={filters.q}
+              onRawQuery={(q) => setFilters((prev) => ({ ...prev, q }))}
+              must={must}
+              anyOf={anyOf}
+              not={not}
+              onMust={setMust}
+              onAnyOf={setAnyOf}
+              onNot={setNot}
+            />
+          </div>
+        )}
           </>
         ) : (
           /* ── AI JD match panel ─────────────────────────────────────── */
@@ -991,7 +1020,7 @@ export function TalentSearch() {
       </div>
 
       {/* ── landing (pre-search): the database stays private until the first search ── */}
-      {mode === 'keyword' && !armed && (
+      {mode !== 'jd' && !armed && (
         <section className="space-y-4" aria-label="Search landing">
           <div className="rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-6 text-center dark:border-slate-800 dark:from-slate-900 dark:to-slate-900">
             <FileSearch className="mx-auto mb-3 size-10 text-teal-600 dark:text-teal-400" aria-hidden />
@@ -1116,8 +1145,8 @@ export function TalentSearch() {
         </section>
       )}
 
-      {/* ── body: rail + results (keyword mode, after the first search) ── */}
-      {mode === 'keyword' && armed && (
+      {/* ── body: rail + results (normal/boolean mode, after the first search) ── */}
+      {mode !== 'jd' && armed && (
       <div className="grid gap-3 lg:grid-cols-[260px_1fr]">
         <aside className="lg:sticky lg:top-4 lg:self-start">
           <FilterRail filters={filters} setFilters={setFilters} meta={meta} onClearAll={clearAll} />

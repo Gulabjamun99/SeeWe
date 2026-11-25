@@ -25,16 +25,48 @@ import {
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
+import {
+  DEFAULT_INTERVIEW_VOICE,
+  getIndianVoiceMeta,
+  pickFallbackEnglishVoice,
+  pickIndianBrowserVoice,
+  type IndianVoiceId,
+} from '@/lib/interview-voices'
+import { IndianVoiceSelector } from './IndianVoiceSelector'
 
 type SpeakerState = 'idle' | 'playing' | 'pass' | 'fail'
-
-/** The ONE fixed interviewer voice for every interview (see /api/tts) */
-const INTERVIEWER_VOICE = 'arjun'
 
 const TEST_LINE =
   'This is a quick sound test. If you can hear my voice clearly, your sound is ready and we can begin the interview.'
 
-export function SpeakerCheck() {
+export function SpeakerCheck({
+  voiceId,
+  onVoiceChange,
+}: {
+  voiceId?: IndianVoiceId
+  onVoiceChange?: (v: IndianVoiceId) => void
+} = {}) {
+  const [internalVoice, setInternalVoice] = useState<IndianVoiceId>(() => {
+    if (voiceId) return voiceId
+    if (typeof window !== 'undefined') {
+      const saved = window.sessionStorage.getItem('seewe_interview_voice')
+      if (saved) return getIndianVoiceMeta(saved).id
+    }
+    return DEFAULT_INTERVIEW_VOICE
+  })
+  const activeVoice = voiceId ?? internalVoice
+  const handleVoicePick = (v: IndianVoiceId) => {
+    setInternalVoice(v)
+    try {
+      if (typeof window !== 'undefined') {
+        window.sessionStorage.setItem('seewe_interview_voice', v)
+      }
+    } catch {
+      /* noop */
+    }
+    onVoiceChange?.(v)
+  }
+
   const [state, setState] = useState<SpeakerState>('idle')
   const [playedOnce, setPlayedOnce] = useState(false)
   const audioRef = useRef<HTMLAudioElement | null>(null)
@@ -57,29 +89,31 @@ export function SpeakerCheck() {
   const playTestSound = useCallback(async () => {
     stopAudio()
     setState('playing')
+    const voiceMeta = getIndianVoiceMeta(activeVoice)
 
-    // 1. Try Browser Speech Synthesis with Indian Voice
+    // 1. Try Browser Speech Synthesis with gender-matched Indian Voice
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       try {
         const synth = window.speechSynthesis
-        const voices = synth.getVoices()
-        const indianVoice = voices.find(
-          (v) =>
-            v.lang.toLowerCase().replace('_', '-').startsWith('en-in') ||
-            v.lang.toLowerCase().startsWith('hi') ||
-            v.name.toLowerCase().includes('india') ||
-            v.name.toLowerCase().includes('neerja') ||
-            v.name.toLowerCase().includes('prabhat') ||
-            v.name.toLowerCase().includes('heera') ||
-            v.name.toLowerCase().includes('rishi')
-        ) || voices.find((v) => v.lang.startsWith('en'))
+        let voices = synth.getVoices()
+        if (!voices.length) {
+          await new Promise<void>((resolve) => {
+            const t = setTimeout(resolve, 250)
+            synth.onvoiceschanged = () => {
+              clearTimeout(t)
+              resolve()
+            }
+          })
+          voices = synth.getVoices()
+        }
+        const indianVoice = pickIndianBrowserVoice(voices, voiceMeta)
 
-        if (indianVoice || voices.length > 0) {
+        if (indianVoice) {
           synth.cancel()
           const utterance = new SpeechSynthesisUtterance(TEST_LINE)
-          if (indianVoice) utterance.voice = indianVoice
-          utterance.rate = 0.9
-          utterance.pitch = 1.0
+          utterance.voice = indianVoice
+          utterance.rate = voiceMeta.rate
+          utterance.pitch = voiceMeta.pitch
           utterance.onend = () => {
             setState((s) => (s === 'playing' ? 'idle' : s))
             setPlayedOnce(true)
@@ -96,12 +130,12 @@ export function SpeakerCheck() {
       }
     }
 
-    // 2. Fallback to API TTS
+    // 2. Fallback to API TTS with selected Indian voice
     try {
       const res = await fetch('/api/tts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: TEST_LINE, voice: INTERVIEWER_VOICE, speed: 0.85 }),
+        body: JSON.stringify({ text: TEST_LINE, voice: voiceMeta.id, speed: voiceMeta.rate }),
       })
       const json = (await res.json().catch(() => ({}))) as { data?: string }
       if (!res.ok || !json.data?.startsWith('data:audio')) throw new Error('tts failed')
@@ -111,10 +145,40 @@ export function SpeakerCheck() {
       el.onerror = () => setState((s) => (s === 'playing' ? 'fail' : s))
       await el.play()
       setPlayedOnce(true)
+      return
     } catch {
-      setState('fail')
+      /* final fallback to generic English voice if available */
     }
-  }, [stopAudio])
+
+    // 3. Final fallback: English browser voice
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      try {
+        const synth = window.speechSynthesis
+        const fallback = pickFallbackEnglishVoice(synth.getVoices(), voiceMeta.gender)
+        if (fallback) {
+          synth.cancel()
+          const utterance = new SpeechSynthesisUtterance(TEST_LINE)
+          utterance.voice = fallback
+          utterance.rate = voiceMeta.rate
+          utterance.pitch = voiceMeta.pitch
+          utterance.onend = () => {
+            setState((s) => (s === 'playing' ? 'idle' : s))
+            setPlayedOnce(true)
+          }
+          utterance.onerror = () => {
+            setState((s) => (s === 'playing' ? 'fail' : s))
+          }
+          synth.speak(utterance)
+          setPlayedOnce(true)
+          return
+        }
+      } catch {
+        /* noop */
+      }
+    }
+
+    setState('fail')
+  }, [activeVoice, stopAudio])
 
   const rowCls =
     state === 'pass'
@@ -142,91 +206,100 @@ export function SpeakerCheck() {
             : 'Press “Play test sound” — you should hear a short line in the interviewer’s voice.'
 
   return (
-    <div
-      className={`flex flex-col gap-3 rounded-xl border px-4 py-3 sm:flex-row sm:items-center ${rowCls}`}
-      role="status"
-      aria-label="Speaker check"
-    >
-      <span
-        className="grid size-9 shrink-0 place-items-center rounded-lg bg-white shadow-sm dark:bg-slate-900"
-        aria-hidden
+    <div className="space-y-3">
+      <div
+        className={`flex flex-col gap-3 rounded-xl border px-4 py-3 sm:flex-row sm:items-center ${rowCls}`}
+        role="status"
+        aria-label="Speaker check"
       >
-        {state === 'playing' ? (
-          <Loader2 className="size-4 animate-spin text-blue-600" />
-        ) : state === 'pass' ? (
-          <CheckCircle2 className="size-4 text-emerald-600" />
-        ) : state === 'fail' ? (
-          <AlertTriangle className="size-4 text-rose-500" />
-        ) : (
-          <Volume2 className="size-4 text-slate-400" />
-        )}
-      </span>
+        <span
+          className="grid size-9 shrink-0 place-items-center rounded-lg bg-white shadow-sm dark:bg-slate-900"
+          aria-hidden
+        >
+          {state === 'playing' ? (
+            <Loader2 className="size-4 animate-spin text-blue-600" />
+          ) : state === 'pass' ? (
+            <CheckCircle2 className="size-4 text-emerald-600" />
+          ) : state === 'fail' ? (
+            <AlertTriangle className="size-4 text-rose-500" />
+          ) : (
+            <Volume2 className="size-4 text-slate-400" />
+          )}
+        </span>
 
-      <div className="min-w-0 flex-1">
-        <p className="flex items-center gap-2 text-sm font-semibold text-slate-800 dark:text-slate-200">
-          Speakers
-          <span
-            className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${pillCls}`}
-          >
-            {state === 'idle' && playedOnce ? 'confirm' : state}
-          </span>
-        </p>
-        <p className="mt-0.5 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
-          {description}
-        </p>
-      </div>
+        <div className="min-w-0 flex-1">
+          <p className="flex items-center gap-2 text-sm font-semibold text-slate-800 dark:text-slate-200">
+            Speakers
+            <span
+              className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${pillCls}`}
+            >
+              {state === 'idle' && playedOnce ? 'confirm' : state}
+            </span>
+          </p>
+          <p className="mt-0.5 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+            {description}
+          </p>
+        </div>
 
-      <div className="flex shrink-0 flex-wrap items-center gap-2">
-        {state === 'fail' ? (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => void playTestSound()}
-            className="h-8 rounded-lg text-xs"
-            aria-label="Replay the sound test"
-          >
-            <RefreshCw className="size-3.5" aria-hidden /> Replay
-          </Button>
-        ) : state !== 'pass' ? (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => void playTestSound()}
-            disabled={state === 'playing'}
-            className="h-8 rounded-lg text-xs"
-            aria-label="Play the sound test"
-          >
-            {state === 'playing' ? (
-              <Loader2 className="size-3.5 animate-spin" aria-hidden />
-            ) : (
-              <Volume2 className="size-3.5 text-blue-600" aria-hidden />
-            )}
-            {playedOnce ? 'Replay' : 'Play test sound'}
-          </Button>
-        ) : null}
-
-        {playedOnce && state !== 'playing' && state !== 'pass' && (
-          <>
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          {state === 'fail' ? (
             <Button
               size="sm"
-              onClick={() => setState('pass')}
-              className="h-8 rounded-lg bg-emerald-600 text-xs text-white hover:bg-emerald-700"
-              aria-label="Confirm you heard the sound"
+              variant="outline"
+              onClick={() => void playTestSound()}
+              className="h-8 rounded-lg text-xs"
+              aria-label="Replay the sound test"
             >
-              <CheckCircle2 className="size-3.5" aria-hidden /> Yes, I hear it
+              <RefreshCw className="size-3.5" aria-hidden /> Replay
             </Button>
+          ) : state !== 'pass' ? (
             <Button
               size="sm"
-              variant="ghost"
-              onClick={() => setState('fail')}
-              className="h-8 rounded-lg text-xs text-slate-500 hover:text-rose-600"
-              aria-label="Report that the sound test failed"
+              variant="outline"
+              onClick={() => void playTestSound()}
+              disabled={state === 'playing'}
+              className="h-8 rounded-lg text-xs"
+              aria-label="Play the sound test"
             >
-              <VolumeX className="size-3.5" aria-hidden /> No sound
+              {state === 'playing' ? (
+                <Loader2 className="size-3.5 animate-spin" aria-hidden />
+              ) : (
+                <Volume2 className="size-3.5 text-blue-600" aria-hidden />
+              )}
+              {playedOnce ? 'Replay' : 'Play test sound'}
             </Button>
-          </>
-        )}
+          ) : null}
+
+          {playedOnce && state !== 'playing' && state !== 'pass' && (
+            <>
+              <Button
+                size="sm"
+                onClick={() => setState('pass')}
+                className="h-8 rounded-lg bg-emerald-600 text-xs text-white hover:bg-emerald-700"
+                aria-label="Confirm you heard the sound"
+              >
+                <CheckCircle2 className="size-3.5" aria-hidden /> Yes, I hear it
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setState('fail')}
+                className="h-8 rounded-lg text-xs text-slate-500 hover:text-rose-600"
+                aria-label="Report that the sound test failed"
+              >
+                <VolumeX className="size-3.5" aria-hidden /> No sound
+              </Button>
+            </>
+          )}
+        </div>
       </div>
+
+      <IndianVoiceSelector
+        compact
+        value={activeVoice}
+        onChange={handleVoicePick}
+        label="Choose AI Interviewer Voice (Indian Accent)"
+      />
     </div>
   )
 }
